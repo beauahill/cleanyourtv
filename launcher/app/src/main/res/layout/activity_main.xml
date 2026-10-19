@@ -5,6 +5,21 @@
     android:layout_height="match_parent"
     android:background="#FF000000">
 
+    <!-- Dynamic day/night wallpaper background -->
+    <ImageView
+        android:id="@+id/wallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="@null" />
+
+    <!-- Subtle scrim overlay for optimal contrast and text legibility -->
+    <View
+        android:id="@+id/scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#2E000000" />
+
     <!-- Ambient glow in the colour of the focused dock app. -->
     <View
         android:id="@+id/ambient"
@@ -18,6 +33,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="68dp"
+        android:visibility="gone"
         android:alpha="0"
         android:textColor="#FFFFFFFF"
         android:textSize="48sp"
@@ -31,8 +47,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingStart="56dp"
-        android:paddingEnd="56dp"
+        android:paddingStart="36dp"
+        android:paddingEnd="36dp"
         android:paddingTop="26dp">
 
         <RelativeLayout
@@ -108,8 +124,8 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="bottom"
                         android:layout_marginBottom="9dp"
-                        android:format12Hour="@string/date_format"
-                        android:format24Hour="@string/date_format"
+                        android:format12Hour="EEEE, d MMMM"
+                        android:format24Hour="EEEE, d MMMM"
                         android:textColor="#A6FFFFFF"
                         android:textSize="14sp"
                         android:fontFamily="@font/outfit"
@@ -129,25 +145,22 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/btnInputs"
+                    android:id="@+id/btnCalendar"
                     style="@style/TopButton"
-                    android:text="@string/inputs"
-                    android:drawableStart="@drawable/ic_input"
-                    android:nextFocusDown="@+id/grid" />
+                    android:text="Calendar"
+                    android:drawableStart="@drawable/ic_calendar" />
 
                 <TextView
                     android:id="@+id/btnWifi"
                     style="@style/TopButton"
                     android:text="@string/wifi"
-                    android:drawableStart="@drawable/ic_wifi"
-                    android:nextFocusDown="@+id/grid" />
+                    android:drawableStart="@drawable/ic_wifi" />
 
                 <TextView
                     android:id="@+id/btnSettings"
                     style="@style/TopButton"
                     android:text="@string/settings"
-                    android:drawableStart="@drawable/ic_settings"
-                    android:nextFocusDown="@+id/grid" />
+                    android:drawableStart="@drawable/ic_settings" />
             </LinearLayout>
         </RelativeLayout>
 
@@ -179,4 +192,10 @@
         android:layout_height="10dp"
         android:alpha="0"
         android:importantForAccessibility="no" />
+
+    <!-- Calendar Fullscreen Overlay -->
+    <include layout="@layout/overlay_calendar" />
+
+    <!-- Settings Fullscreen Overlay -->
+    <include layout="@layout/overlay_settings" />
 </FrameLayout>

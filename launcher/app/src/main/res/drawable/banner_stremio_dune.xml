@@ -1,0 +1,42 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="160dp"
+    android:height="90dp"
+    android:viewportWidth="160"
+    android:viewportHeight="90">
+
+    <path
+        android:pathData="M0,0h160v90h-160z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="160"
+                android:endY="90"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FF1C0D02" />
+                <item android:offset="0.6" android:color="#FFB45309" />
+                <item android:offset="1.0" android:color="#FFF59E0B" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Desert sun / Eclipse motif -->
+    <path
+        android:fillColor="#44000000"
+        android:pathData="M 80,45 m -24,0 a 24,24 0 1,0 48,0 a 24,24 0 1,0 -48,0" />
+    <path
+        android:fillColor="#E6F59E0B"
+        android:pathData="M 80,45 m -18,0 a 18,18 0 1,0 36,0 a 18,18 0 1,0 -36,0" />
+    <path
+        android:fillColor="#FF1C0D02"
+        android:pathData="M 84,45 m -16,0 a 16,16 0 1,0 32,0 a 16,16 0 1,0 -32,0" />
+
+    <!-- Corner badge -->
+    <path
+        android:fillColor="#80000000"
+        android:pathData="M 12,12 h 36 v 14 h -36 z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M 17,16 L 24,19 L 17,22 Z" />
+</vector>

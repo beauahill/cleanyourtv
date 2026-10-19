@@ -1,0 +1,40 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="160dp"
+    android:height="90dp"
+    android:viewportWidth="160"
+    android:viewportHeight="90">
+
+    <path
+        android:pathData="M0,0h160v90h-160z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="160"
+                android:endY="90"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FF030712" />
+                <item android:offset="0.5" android:color="#FF1E1B4B" />
+                <item android:offset="1.0" android:color="#FF0284C7" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Gotham city silhouette & umbrella tip -->
+    <path
+        android:fillColor="#55000000"
+        android:pathData="M 40,75 L 40,40 L 55,40 L 55,50 L 70,50 L 70,30 L 90,30 L 90,75 Z" />
+    <path
+        android:strokeColor="#AA38BDF8"
+        android:strokeWidth="2"
+        android:pathData="M 80,32 L 80,58 M 80,58 C 80,64 74,64 72,60" />
+
+    <!-- Corner badge -->
+    <path
+        android:fillColor="#80000000"
+        android:pathData="M 12,12 h 36 v 14 h -36 z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M 17,16 L 24,19 L 17,22 Z" />
+</vector>

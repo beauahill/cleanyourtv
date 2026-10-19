@@ -1,0 +1,49 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="160dp"
+    android:height="90dp"
+    android:viewportWidth="160"
+    android:viewportHeight="90">
+
+    <!-- Gradient Background -->
+    <path
+        android:pathData="M0,0h160v90h-160z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="160"
+                android:endY="90"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FF1A0507" />
+                <item android:offset="0.5" android:color="#FF83181E" />
+                <item android:offset="1.0" android:color="#FFEAB308" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Deadpool / Wolverine Mask motif -->
+    <!-- Left red mask eye outline -->
+    <path
+        android:fillColor="#CC000000"
+        android:pathData="M 62,35 C 56,35 50,40 50,47 C 50,56 58,62 66,62 C 72,62 76,57 76,50 C 76,41 70,35 62,35 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M 64,43 C 60,43 56,46 56,49 C 56,53 62,55 66,53 C 68,52 70,48 70,46 C 68,44 66,43 64,43 Z" />
+
+    <!-- Right yellow claw motif -->
+    <path
+        android:fillColor="#CC000000"
+        android:pathData="M 98,35 C 104,35 110,40 110,47 C 110,56 102,62 94,62 C 88,62 84,57 84,50 C 84,41 90,35 98,35 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M 96,43 C 100,43 104,46 104,49 C 104,53 98,55 94,53 C 92,52 90,48 90,46 C 92,44 94,43 96,43 Z" />
+
+    <!-- Sleek Stremio badge in corner -->
+    <path
+        android:fillColor="#80000000"
+        android:pathData="M 12,12 h 36 v 14 h -36 z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M 17,16 L 24,19 L 17,22 Z" />
+</vector>

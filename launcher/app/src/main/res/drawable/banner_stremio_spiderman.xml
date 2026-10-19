@@ -1,0 +1,44 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="160dp"
+    android:height="90dp"
+    android:viewportWidth="160"
+    android:viewportHeight="90">
+
+    <path
+        android:pathData="M0,0h160v90h-160z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="160"
+                android:endY="90"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FF0B132B" />
+                <item android:offset="0.5" android:color="#FF4C1D95" />
+                <item android:offset="1.0" android:color="#FFBE185D" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Spider web motif -->
+    <path
+        android:strokeColor="#55FFFFFF"
+        android:strokeWidth="1.2"
+        android:pathData="M 80,10 L 80,80 M 35,45 L 125,45 M 48,22 L 112,68 M 48,68 L 112,22" />
+    <path
+        android:strokeColor="#88FFFFFF"
+        android:strokeWidth="1.2"
+        android:pathData="M 80,25 C 65,25 60,35 60,45 C 60,55 65,65 80,65 C 95,65 100,55 100,45 C 100,35 95,25 80,25 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M 80,38 L 84,45 L 80,52 L 76,45 Z" />
+
+    <!-- Corner badge -->
+    <path
+        android:fillColor="#80000000"
+        android:pathData="M 12,12 h 36 v 14 h -36 z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M 17,16 L 24,19 L 17,22 Z" />
+</vector>

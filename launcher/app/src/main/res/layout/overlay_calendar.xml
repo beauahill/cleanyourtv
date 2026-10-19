@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/calendarOverlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E60A0C10"
+    android:clickable="true"
+    android:focusable="true"
+    android:paddingStart="48dp"
+    android:paddingEnd="48dp"
+    android:paddingTop="28dp"
+    android:paddingBottom="24dp"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Top Header: Back, Month & Subtitle, Navigation Pills -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btnCalClose"
+                        style="@style/TopButton"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:layout_marginStart="0dp"
+                        android:paddingStart="0dp"
+                        android:paddingEnd="0dp"
+                        android:gravity="center"
+                        android:text="←"
+                        android:textSize="18sp"
+                        android:nextFocusLeft="@id/btnCalClose"
+                        android:nextFocusRight="@id/btnCalPrev"
+                        android:nextFocusUp="@id/btnCalClose"
+                        android:nextFocusDown="@id/calGridTable" />
+
+                    <TextView
+                        android:id="@+id/tvCalMonthYear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:fontFamily="@font/outfit"
+                        android:fontVariationSettings="'wght' 600"
+                        android:letterSpacing="-0.02"
+                        android:text="October 2026"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="32sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvCalSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="58dp"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="@font/outfit"
+                    android:fontVariationSettings="'wght' 400"
+                    android:letterSpacing="0.08"
+                    android:text="No scheduled events"
+                    android:textAllCaps="true"
+                    android:textColor="#38BDF8"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/btnCalPrev"
+                    style="@style/TopButton"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
+                    android:gravity="center"
+                    android:text="‹"
+                    android:textSize="22sp"
+                    android:nextFocusLeft="@id/btnCalClose"
+                    android:nextFocusRight="@id/btnCalToday"
+                    android:nextFocusUp="@id/btnCalPrev"
+                    android:nextFocusDown="@id/calGridTable" />
+
+                <TextView
+                    android:id="@+id/btnCalToday"
+                    style="@style/TopButton"
+                    android:text="Today"
+                    android:nextFocusLeft="@id/btnCalPrev"
+                    android:nextFocusRight="@id/btnCalNext"
+                    android:nextFocusUp="@id/btnCalToday"
+                    android:nextFocusDown="@id/calGridTable" />
+
+                <TextView
+                    android:id="@+id/btnCalNext"
+                    style="@style/TopButton"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
+                    android:gravity="center"
+                    android:text="›"
+                    android:textSize="22sp"
+                    android:nextFocusLeft="@id/btnCalToday"
+                    android:nextFocusRight="@id/btnCalNext"
+                    android:nextFocusUp="@id/btnCalNext"
+                    android:nextFocusDown="@id/calGridTable" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <!-- Days of Week Header -->
+        <LinearLayout
+            android:id="@+id/calWeekDays"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:orientation="horizontal">
+
+            <TextView style="@style/CalDayHeader" android:text="SUN" />
+            <TextView style="@style/CalDayHeader" android:text="MON" />
+            <TextView style="@style/CalDayHeader" android:text="TUE" />
+            <TextView style="@style/CalDayHeader" android:text="WED" />
+            <TextView style="@style/CalDayHeader" android:text="THU" />
+            <TextView style="@style/CalDayHeader" android:text="FRI" />
+            <TextView style="@style/CalDayHeader" android:text="SAT" />
+        </LinearLayout>
+
+        <!-- Calendar Month Grid Container -->
+        <TableLayout
+            android:id="@+id/calGridTable"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:stretchColumns="0,1,2,3,4,5,6" />
+    </LinearLayout>
+</FrameLayout>
