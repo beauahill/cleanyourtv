@@ -5,9 +5,13 @@ A lightweight, privacy-focused tvOS-inspired launcher fork for Android TV and Go
 
 This fork builds upon [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) with a rich media shelf, wallpaper peek physics, a frosted glass settings interface, and integrated calendar tracking.
 
-| Stock home screen | tvOS Launcher with Stremio Shelf & Peek Dock |
+<p align="center">
+  <img src="docs/stock-vs-new-side.jpg" alt="Before and After: Stock TV vs tvOS Launcher with Stremio Shelf" width="100%">
+</p>
+
+| Stock home screen (Before) | tvOS Launcher with Stremio Shelf & Peek Dock (After) |
 |---|---|
-| ![Stock Google TV home with a sponsored ad](docs/stock-home.jpg) | ![tvOS-style launcher](docs/new-home.jpg) |
+| ![Stock Google TV home with a sponsored ad](docs/stock-home.jpg) | ![tvOS-style launcher with Stremio shelf and dock](docs/new-home.jpg) |
 
 Everything is reversible: packages are disabled, never uninstalled, and a restore script puts the stock launcher back.
 
@@ -15,11 +19,15 @@ Everything is reversible: packages are disabled, never uninstalled, and a restor
 
 - **Stremio Integration & Media Shelf:** Adds an auto-populated shelf for your continue-watching and trending Stremio media with cached posters and seamless leanback intent launching.
 - **Ultra-Low Dock Peek Mode:** Minimizes the dock down towards the bottom bezel when unfocused so your wallpapers and media remain visible. Seamlessly springs back up when pressing DPAD Down.
-- **Smart App Labels:** Keeps the interface clean by revealing app titles only under the currently focused item.
 - **Frosted Glass Settings:** A leanback tvOS-style frosted glass settings overlay allowing you to toggle dock peek depth (Ultra / Balanced / None), pill styles (icon-only vs. text+logo), and themes.
 - **Dynamic Day/Night Theme Cycle:** Automatically transitions wallpapers between day and night based on the local solar cycle.
 - **Calendar & Schedule Overlay:** Lightweight, keyboard/dpad friendly month calendar with day tracking and agenda support.
+- **Smart App Labels:** Keeps the interface clean by revealing app titles only under the currently focused item.
 - **Remote Video Key Shortcut:** Accessibility service helper to map remote media/video shortcuts to launch Stremio directly.
+
+| Dynamic Wallpaper & Peek Dock Mode | Frosted Glass Settings Overlay |
+|---|---|
+| ![Ultra-low dock peek mode](docs/dock-peek-wallpaper.png) | ![Frosted glass settings](docs/settings-frosted.png) |
 
 ## Quick start
 
