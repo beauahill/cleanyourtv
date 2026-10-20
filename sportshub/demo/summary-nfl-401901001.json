@@ -1,0 +1,252 @@
+{
+ "scoringPlays": [
+  {
+   "text": "Courtland Sutton 24 yd pass from Bo Nix (Wil Lutz kick)",
+   "period": {
+    "number": 1
+   },
+   "clock": {
+    "displayValue": "8:12"
+   },
+   "team": {
+    "abbreviation": "DEN"
+   },
+   "homeScore": 0,
+   "awayScore": 7,
+   "scoringType": {
+    "abbreviation": "TD"
+   }
+  },
+  {
+   "text": "Harrison Butker 41 yd field goal",
+   "period": {
+    "number": 1
+   },
+   "clock": {
+    "displayValue": "2:03"
+   },
+   "team": {
+    "abbreviation": "KC"
+   },
+   "homeScore": 3,
+   "awayScore": 7,
+   "scoringType": {
+    "abbreviation": "FG"
+   }
+  },
+  {
+   "text": "Travis Kelce 9 yd pass from Patrick Mahomes (Butker kick)",
+   "period": {
+    "number": 2
+   },
+   "clock": {
+    "displayValue": "9:44"
+   },
+   "team": {
+    "abbreviation": "KC"
+   },
+   "homeScore": 10,
+   "awayScore": 7,
+   "scoringType": {
+    "abbreviation": "TD"
+   }
+  },
+  {
+   "text": "Wil Lutz 33 yd field goal",
+   "period": {
+    "number": 2
+   },
+   "clock": {
+    "displayValue": "0:04"
+   },
+   "team": {
+    "abbreviation": "DEN"
+   },
+   "homeScore": 10,
+   "awayScore": 10,
+   "scoringType": {
+    "abbreviation": "FG"
+   }
+  },
+  {
+   "text": "Isiah Pacheco 3 yd run (Butker kick)",
+   "period": {
+    "number": 3
+   },
+   "clock": {
+    "displayValue": "11:30"
+   },
+   "team": {
+    "abbreviation": "KC"
+   },
+   "homeScore": 17,
+   "awayScore": 10,
+   "scoringType": {
+    "abbreviation": "TD"
+   }
+  },
+  {
+   "text": "Marvin Mims Jr. 55 yd punt return (Lutz kick)",
+   "period": {
+    "number": 3
+   },
+   "clock": {
+    "displayValue": "8:10"
+   },
+   "team": {
+    "abbreviation": "DEN"
+   },
+   "homeScore": 17,
+   "awayScore": 17,
+   "scoringType": {
+    "abbreviation": "TD"
+   }
+  },
+  {
+   "text": "Wil Lutz 47 yd field goal",
+   "period": {
+    "number": 3
+   },
+   "clock": {
+    "displayValue": "6:55"
+   },
+   "team": {
+    "abbreviation": "DEN"
+   },
+   "homeScore": 17,
+   "awayScore": 20,
+   "scoringType": {
+    "abbreviation": "FG"
+   }
+  }
+ ],
+ "leaders": [
+  {
+   "team": {
+    "abbreviation": "DEN"
+   },
+   "leaders": [
+    {
+     "shortDisplayName": "PASS",
+     "leaders": [
+      {
+       "displayValue": "18/26, 214 YDS, 2 TD",
+       "athlete": {
+        "shortName": "B. Nix"
+       }
+      }
+     ]
+    },
+    {
+     "shortDisplayName": "RUSH",
+     "leaders": [
+      {
+       "displayValue": "9 CAR, 44 YDS",
+       "athlete": {
+        "shortName": "J. Williams"
+       }
+      }
+     ]
+    },
+    {
+     "shortDisplayName": "REC",
+     "leaders": [
+      {
+       "displayValue": "6 REC, 98 YDS, TD",
+       "athlete": {
+        "shortName": "C. Sutton"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "team": {
+    "abbreviation": "KC"
+   },
+   "leaders": [
+    {
+     "shortDisplayName": "PASS",
+     "leaders": [
+      {
+       "displayValue": "21/30, 233 YDS, TD",
+       "athlete": {
+        "shortName": "P. Mahomes"
+       }
+      }
+     ]
+    },
+    {
+     "shortDisplayName": "RUSH",
+     "leaders": [
+      {
+       "displayValue": "14 CAR, 71 YDS, TD",
+       "athlete": {
+        "shortName": "I. Pacheco"
+       }
+      }
+     ]
+    },
+    {
+     "shortDisplayName": "REC",
+     "leaders": [
+      {
+       "displayValue": "7 REC, 81 YDS, TD",
+       "athlete": {
+        "shortName": "T. Kelce"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "boxscore": {
+  "teams": [
+   {
+    "team": {
+     "abbreviation": "DEN"
+    },
+    "statistics": [
+     {
+      "label": "Total Yards",
+      "displayValue": "312"
+     },
+     {
+      "label": "Turnovers",
+      "displayValue": "0"
+     },
+     {
+      "label": "Possession",
+      "displayValue": "19:42"
+     }
+    ]
+   },
+   {
+    "team": {
+     "abbreviation": "KC"
+    },
+    "statistics": [
+     {
+      "label": "Total Yards",
+      "displayValue": "341"
+     },
+     {
+      "label": "Turnovers",
+      "displayValue": "1"
+     },
+     {
+      "label": "Possession",
+      "displayValue": "21:36"
+     }
+    ]
+   }
+  ]
+ },
+ "winprobability": [
+  {
+   "homeWinPercentage": 0.41
+  }
+ ]
+}

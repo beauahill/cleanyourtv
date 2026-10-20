@@ -1,0 +1,250 @@
+{
+ "leagues": [
+  {
+   "abbreviation": "NHL"
+  }
+ ],
+ "events": [
+  {
+   "id": "401904001",
+   "uid": "s:1~e:401904001",
+   "date": "2026-10-20T01:00Z",
+   "name": "Colorado Avalanche at Vegas Golden Knights",
+   "shortName": "COL @ VGK",
+   "competitions": [
+    {
+     "id": "401904001",
+     "date": "2026-10-20T01:00Z",
+     "neutralSite": false,
+     "venue": {
+      "fullName": "T-Mobile Arena",
+      "address": {
+       "city": "City",
+       "state": "ST"
+      }
+     },
+     "competitors": [
+      {
+       "id": "37",
+       "homeAway": "home",
+       "winner": false,
+       "score": "2",
+       "team": {
+        "id": "37",
+        "abbreviation": "VGK",
+        "displayName": "Vegas Golden Knights",
+        "shortDisplayName": "Golden Knights",
+        "name": "Golden Knights",
+        "location": "Vegas",
+        "color": "b4975a",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nhl/500/vgk.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "4-1-1"
+        }
+       ],
+       "linescores": [
+        {
+         "value": 1,
+         "displayValue": "1"
+        },
+        {
+         "value": 1,
+         "displayValue": "1"
+        }
+       ]
+      },
+      {
+       "id": "17",
+       "homeAway": "away",
+       "winner": false,
+       "score": "3",
+       "team": {
+        "id": "17",
+        "abbreviation": "COL",
+        "displayName": "Colorado Avalanche",
+        "shortDisplayName": "Avalanche",
+        "name": "Avalanche",
+        "location": "Colorado",
+        "color": "6f263d",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nhl/500/col.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "5-1-0"
+        }
+       ],
+       "linescores": [
+        {
+         "value": 2,
+         "displayValue": "2"
+        },
+        {
+         "value": 1,
+         "displayValue": "1"
+        }
+       ]
+      }
+     ],
+     "status": {
+      "clock": 0.0,
+      "displayClock": "14:21",
+      "period": 3,
+      "type": {
+       "id": "1",
+       "name": "STATUS_IN_PROGRESS",
+       "state": "in",
+       "completed": false,
+       "description": "In Progress",
+       "detail": "In Progress",
+       "shortDetail": "In Progress"
+      }
+     },
+     "broadcasts": [
+      {
+       "market": "national",
+       "names": [
+        "ESPN+"
+       ]
+      }
+     ],
+     "situation": {
+      "lastPlay": {
+       "text": "Nathan MacKinnon wrist shot saved by Adin Hill"
+      }
+     }
+    }
+   ],
+   "status": {
+    "clock": 0.0,
+    "displayClock": "14:21",
+    "period": 3,
+    "type": {
+     "id": "1",
+     "name": "STATUS_IN_PROGRESS",
+     "state": "in",
+     "completed": false,
+     "description": "In Progress",
+     "detail": "In Progress",
+     "shortDetail": "In Progress"
+    }
+   }
+  },
+  {
+   "id": "401904002",
+   "uid": "s:1~e:401904002",
+   "date": "2026-10-20T23:00Z",
+   "name": "Toronto Maple Leafs at Montreal Canadiens",
+   "shortName": "TOR @ MTL",
+   "competitions": [
+    {
+     "id": "401904002",
+     "date": "2026-10-20T23:00Z",
+     "neutralSite": false,
+     "venue": {
+      "fullName": "Bell Centre",
+      "address": {
+       "city": "City",
+       "state": "ST"
+      }
+     },
+     "competitors": [
+      {
+       "id": "10",
+       "homeAway": "home",
+       "winner": false,
+       "score": "0",
+       "team": {
+        "id": "10",
+        "abbreviation": "MTL",
+        "displayName": "Montreal Canadiens",
+        "shortDisplayName": "Canadiens",
+        "name": "Canadiens",
+        "location": "Montreal",
+        "color": "af1e2d",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nhl/500/mtl.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "3-3-0"
+        }
+       ],
+       "linescores": []
+      },
+      {
+       "id": "21",
+       "homeAway": "away",
+       "winner": false,
+       "score": "0",
+       "team": {
+        "id": "21",
+        "abbreviation": "TOR",
+        "displayName": "Toronto Maple Leafs",
+        "shortDisplayName": "Maple Leafs",
+        "name": "Maple Leafs",
+        "location": "Toronto",
+        "color": "00205b",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nhl/500/tor.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "4-2-0"
+        }
+       ],
+       "linescores": []
+      }
+     ],
+     "status": {
+      "clock": 0.0,
+      "displayClock": "0:00",
+      "period": 0,
+      "type": {
+       "id": "1",
+       "name": "STATUS_SCHEDULED",
+       "state": "pre",
+       "completed": false,
+       "description": "10/20 - 5:00 PM MDT",
+       "detail": "10/20 - 5:00 PM MDT",
+       "shortDetail": "10/20 - 5:00 PM MDT"
+      }
+     },
+     "broadcasts": [
+      {
+       "market": "national",
+       "names": [
+        "SN"
+       ]
+      }
+     ]
+    }
+   ],
+   "status": {
+    "clock": 0.0,
+    "displayClock": "0:00",
+    "period": 0,
+    "type": {
+     "id": "1",
+     "name": "STATUS_SCHEDULED",
+     "state": "pre",
+     "completed": false,
+     "description": "10/20 - 5:00 PM MDT",
+     "detail": "10/20 - 5:00 PM MDT",
+     "shortDetail": "10/20 - 5:00 PM MDT"
+    }
+   }
+  }
+ ]
+}

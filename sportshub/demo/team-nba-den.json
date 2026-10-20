@@ -1,0 +1,140 @@
+{
+ "team": {
+  "id": "7",
+  "abbreviation": "DEN",
+  "displayName": "Denver Nuggets",
+  "shortDisplayName": "Nuggets",
+  "color": "0e2240",
+  "logos": [
+   {
+    "href": "https://a.espncdn.com/i/teamlogos/nba/500/den.png"
+   }
+  ],
+  "record": {
+   "items": [
+    {
+     "type": "total",
+     "summary": "0-0"
+    }
+   ]
+  },
+  "standingSummary": "1st in Northwest Division",
+  "nextEvent": [
+   {
+    "id": "401903001",
+    "uid": "s:1~e:401903001",
+    "date": "2026-10-20T02:00Z",
+    "name": "Los Angeles Lakers at Denver Nuggets",
+    "shortName": "LAL @ DEN",
+    "competitions": [
+     {
+      "id": "401903001",
+      "date": "2026-10-20T02:00Z",
+      "neutralSite": false,
+      "venue": {
+       "fullName": "Ball Arena",
+       "address": {
+        "city": "City",
+        "state": "ST"
+       }
+      },
+      "competitors": [
+       {
+        "id": "7",
+        "homeAway": "home",
+        "winner": false,
+        "score": "0",
+        "team": {
+         "id": "7",
+         "abbreviation": "DEN",
+         "displayName": "Denver Nuggets",
+         "shortDisplayName": "Nuggets",
+         "name": "Nuggets",
+         "location": "Denver",
+         "color": "0e2240",
+         "alternateColor": "ffffff",
+         "logo": "https://a.espncdn.com/i/teamlogos/nba/500/den.png"
+        },
+        "records": [
+         {
+          "name": "overall",
+          "type": "total",
+          "summary": "0-0"
+         }
+        ],
+        "linescores": []
+       },
+       {
+        "id": "13",
+        "homeAway": "away",
+        "winner": false,
+        "score": "0",
+        "team": {
+         "id": "13",
+         "abbreviation": "LAL",
+         "displayName": "Los Angeles Lakers",
+         "shortDisplayName": "Lakers",
+         "name": "Lakers",
+         "location": "Los Angeles",
+         "color": "552583",
+         "alternateColor": "ffffff",
+         "logo": "https://a.espncdn.com/i/teamlogos/nba/500/lal.png"
+        },
+        "records": [
+         {
+          "name": "overall",
+          "type": "total",
+          "summary": "0-0"
+         }
+        ],
+        "linescores": []
+       }
+      ],
+      "status": {
+       "clock": 0.0,
+       "displayClock": "0:00",
+       "period": 0,
+       "type": {
+        "id": "1",
+        "name": "STATUS_SCHEDULED",
+        "state": "pre",
+        "completed": false,
+        "description": "10/20 - 8:00 PM MDT",
+        "detail": "10/20 - 8:00 PM MDT",
+        "shortDetail": "10/20 - 8:00 PM MDT"
+       }
+      },
+      "broadcasts": [
+       {
+        "market": "national",
+        "names": [
+         "TNT"
+        ]
+       }
+      ],
+      "odds": [
+       {
+        "details": "DEN -5.5",
+        "overUnder": 228.5
+       }
+      ]
+     }
+    ],
+    "status": {
+     "clock": 0.0,
+     "displayClock": "0:00",
+     "period": 0,
+     "type": {
+      "id": "1",
+      "name": "STATUS_SCHEDULED",
+      "state": "pre",
+      "completed": false,
+      "description": "10/20 - 8:00 PM MDT",
+      "detail": "10/20 - 8:00 PM MDT",
+      "shortDetail": "10/20 - 8:00 PM MDT"
+     }
+    }
+   }
+  ]
+ }
+}

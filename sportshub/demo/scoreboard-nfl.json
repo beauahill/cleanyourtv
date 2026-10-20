@@ -1,0 +1,756 @@
+{
+ "leagues": [
+  {
+   "abbreviation": "NFL"
+  }
+ ],
+ "week": {
+  "number": 7
+ },
+ "events": [
+  {
+   "id": "401901001",
+   "uid": "s:1~e:401901001",
+   "date": "2026-10-20T00:15Z",
+   "name": "Denver Broncos at Kansas City Chiefs",
+   "shortName": "DEN @ KC",
+   "competitions": [
+    {
+     "id": "401901001",
+     "date": "2026-10-20T00:15Z",
+     "neutralSite": false,
+     "venue": {
+      "fullName": "GEHA Field at Arrowhead Stadium",
+      "address": {
+       "city": "City",
+       "state": "ST"
+      }
+     },
+     "competitors": [
+      {
+       "id": "12",
+       "homeAway": "home",
+       "winner": false,
+       "score": "17",
+       "team": {
+        "id": "12",
+        "abbreviation": "KC",
+        "displayName": "Kansas City Chiefs",
+        "shortDisplayName": "Chiefs",
+        "name": "Chiefs",
+        "location": "Kansas City",
+        "color": "e31837",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "5-1"
+        }
+       ],
+       "linescores": [
+        {
+         "value": 7,
+         "displayValue": "7"
+        },
+        {
+         "value": 3,
+         "displayValue": "3"
+        },
+        {
+         "value": 7,
+         "displayValue": "7"
+        }
+       ]
+      },
+      {
+       "id": "7",
+       "homeAway": "away",
+       "winner": false,
+       "score": "20",
+       "team": {
+        "id": "7",
+        "abbreviation": "DEN",
+        "displayName": "Denver Broncos",
+        "shortDisplayName": "Broncos",
+        "name": "Broncos",
+        "location": "Denver",
+        "color": "fb4f14",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/den.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "4-2"
+        }
+       ],
+       "linescores": [
+        {
+         "value": 3,
+         "displayValue": "3"
+        },
+        {
+         "value": 10,
+         "displayValue": "10"
+        },
+        {
+         "value": 7,
+         "displayValue": "7"
+        }
+       ]
+      }
+     ],
+     "status": {
+      "clock": 0.0,
+      "displayClock": "6:42",
+      "period": 3,
+      "type": {
+       "id": "1",
+       "name": "STATUS_IN_PROGRESS",
+       "state": "in",
+       "completed": false,
+       "description": "In Progress",
+       "detail": "In Progress",
+       "shortDetail": "In Progress"
+      }
+     },
+     "broadcasts": [
+      {
+       "market": "national",
+       "names": [
+        "ESPN"
+       ]
+      }
+     ],
+     "situation": {
+      "downDistanceText": "2nd & 7 at KC 35",
+      "possession": "7",
+      "isRedZone": false,
+      "lastPlay": {
+       "text": "B.Nix pass short left to C.Sutton for 12 yards"
+      }
+     },
+     "leaders": [
+      {
+       "name": "passing",
+       "displayName": "Passing",
+       "shortDisplayName": "Passing",
+       "leaders": [
+        {
+         "displayValue": "214 YDS, 2 TD",
+         "athlete": {
+          "shortName": "B. Nix",
+          "displayName": "B. Nix"
+         },
+         "team": {
+          "abbreviation": "DEN"
+         }
+        }
+       ]
+      },
+      {
+       "name": "rushing",
+       "displayName": "Rushing",
+       "shortDisplayName": "Rushing",
+       "leaders": [
+        {
+         "displayValue": "71 YDS",
+         "athlete": {
+          "shortName": "I. Pacheco",
+          "displayName": "I. Pacheco"
+         },
+         "team": {
+          "abbreviation": "KC"
+         }
+        }
+       ]
+      },
+      {
+       "name": "receiving",
+       "displayName": "Receiving",
+       "shortDisplayName": "Receiving",
+       "leaders": [
+        {
+         "displayValue": "6 REC, 98 YDS",
+         "athlete": {
+          "shortName": "C. Sutton",
+          "displayName": "C. Sutton"
+         },
+         "team": {
+          "abbreviation": "DEN"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "status": {
+    "clock": 0.0,
+    "displayClock": "6:42",
+    "period": 3,
+    "type": {
+     "id": "1",
+     "name": "STATUS_IN_PROGRESS",
+     "state": "in",
+     "completed": false,
+     "description": "In Progress",
+     "detail": "In Progress",
+     "shortDetail": "In Progress"
+    }
+   }
+  },
+  {
+   "id": "401901002",
+   "uid": "s:1~e:401901002",
+   "date": "2026-10-20T17:00Z",
+   "name": "Green Bay Packers at Chicago Bears",
+   "shortName": "GB @ CHI",
+   "competitions": [
+    {
+     "id": "401901002",
+     "date": "2026-10-20T17:00Z",
+     "neutralSite": false,
+     "venue": {
+      "fullName": "Soldier Field",
+      "address": {
+       "city": "City",
+       "state": "ST"
+      }
+     },
+     "competitors": [
+      {
+       "id": "3",
+       "homeAway": "home",
+       "winner": false,
+       "score": "0",
+       "team": {
+        "id": "3",
+        "abbreviation": "CHI",
+        "displayName": "Chicago Bears",
+        "shortDisplayName": "Bears",
+        "name": "Bears",
+        "location": "Chicago",
+        "color": "0b162a",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "3-3"
+        }
+       ],
+       "linescores": []
+      },
+      {
+       "id": "9",
+       "homeAway": "away",
+       "winner": false,
+       "score": "0",
+       "team": {
+        "id": "9",
+        "abbreviation": "GB",
+        "displayName": "Green Bay Packers",
+        "shortDisplayName": "Packers",
+        "name": "Packers",
+        "location": "Green Bay",
+        "color": "203731",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "4-2"
+        }
+       ],
+       "linescores": []
+      }
+     ],
+     "status": {
+      "clock": 0.0,
+      "displayClock": "0:00",
+      "period": 0,
+      "type": {
+       "id": "1",
+       "name": "STATUS_SCHEDULED",
+       "state": "pre",
+       "completed": false,
+       "description": "10/20 - 11:00 AM MDT",
+       "detail": "10/20 - 11:00 AM MDT",
+       "shortDetail": "10/20 - 11:00 AM MDT"
+      }
+     },
+     "broadcasts": [
+      {
+       "market": "national",
+       "names": [
+        "FOX"
+       ]
+      }
+     ],
+     "odds": [
+      {
+       "details": "GB -3.5",
+       "overUnder": 44.5
+      }
+     ]
+    }
+   ],
+   "status": {
+    "clock": 0.0,
+    "displayClock": "0:00",
+    "period": 0,
+    "type": {
+     "id": "1",
+     "name": "STATUS_SCHEDULED",
+     "state": "pre",
+     "completed": false,
+     "description": "10/20 - 11:00 AM MDT",
+     "detail": "10/20 - 11:00 AM MDT",
+     "shortDetail": "10/20 - 11:00 AM MDT"
+    }
+   }
+  },
+  {
+   "id": "401901003",
+   "uid": "s:1~e:401901003",
+   "date": "2026-10-20T20:25Z",
+   "name": "Dallas Cowboys at Philadelphia Eagles",
+   "shortName": "DAL @ PHI",
+   "competitions": [
+    {
+     "id": "401901003",
+     "date": "2026-10-20T20:25Z",
+     "neutralSite": false,
+     "venue": {
+      "fullName": "Lincoln Financial Field",
+      "address": {
+       "city": "City",
+       "state": "ST"
+      }
+     },
+     "competitors": [
+      {
+       "id": "21",
+       "homeAway": "home",
+       "winner": false,
+       "score": "0",
+       "team": {
+        "id": "21",
+        "abbreviation": "PHI",
+        "displayName": "Philadelphia Eagles",
+        "shortDisplayName": "Eagles",
+        "name": "Eagles",
+        "location": "Philadelphia",
+        "color": "004c54",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "5-1"
+        }
+       ],
+       "linescores": []
+      },
+      {
+       "id": "6",
+       "homeAway": "away",
+       "winner": false,
+       "score": "0",
+       "team": {
+        "id": "6",
+        "abbreviation": "DAL",
+        "displayName": "Dallas Cowboys",
+        "shortDisplayName": "Cowboys",
+        "name": "Cowboys",
+        "location": "Dallas",
+        "color": "002244",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/dal.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "3-3"
+        }
+       ],
+       "linescores": []
+      }
+     ],
+     "status": {
+      "clock": 0.0,
+      "displayClock": "0:00",
+      "period": 0,
+      "type": {
+       "id": "1",
+       "name": "STATUS_SCHEDULED",
+       "state": "pre",
+       "completed": false,
+       "description": "10/20 - 2:25 PM MDT",
+       "detail": "10/20 - 2:25 PM MDT",
+       "shortDetail": "10/20 - 2:25 PM MDT"
+      }
+     },
+     "broadcasts": [
+      {
+       "market": "national",
+       "names": [
+        "CBS"
+       ]
+      }
+     ],
+     "odds": [
+      {
+       "details": "PHI -6.5",
+       "overUnder": 47.0
+      }
+     ]
+    }
+   ],
+   "status": {
+    "clock": 0.0,
+    "displayClock": "0:00",
+    "period": 0,
+    "type": {
+     "id": "1",
+     "name": "STATUS_SCHEDULED",
+     "state": "pre",
+     "completed": false,
+     "description": "10/20 - 2:25 PM MDT",
+     "detail": "10/20 - 2:25 PM MDT",
+     "shortDetail": "10/20 - 2:25 PM MDT"
+    }
+   }
+  },
+  {
+   "id": "401901004",
+   "uid": "s:1~e:401901004",
+   "date": "2026-10-20T00:20Z",
+   "name": "Buffalo Bills at Miami Dolphins",
+   "shortName": "BUF @ MIA",
+   "competitions": [
+    {
+     "id": "401901004",
+     "date": "2026-10-20T00:20Z",
+     "neutralSite": false,
+     "venue": {
+      "fullName": "Hard Rock Stadium",
+      "address": {
+       "city": "City",
+       "state": "ST"
+      }
+     },
+     "competitors": [
+      {
+       "id": "15",
+       "homeAway": "home",
+       "winner": false,
+       "score": "24",
+       "team": {
+        "id": "15",
+        "abbreviation": "MIA",
+        "displayName": "Miami Dolphins",
+        "shortDisplayName": "Dolphins",
+        "name": "Dolphins",
+        "location": "Miami",
+        "color": "008e97",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/mia.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "2-4"
+        }
+       ],
+       "linescores": [
+        {
+         "value": 7,
+         "displayValue": "7"
+        },
+        {
+         "value": 10,
+         "displayValue": "10"
+        },
+        {
+         "value": 0,
+         "displayValue": "0"
+        },
+        {
+         "value": 7,
+         "displayValue": "7"
+        }
+       ]
+      },
+      {
+       "id": "2",
+       "homeAway": "away",
+       "winner": true,
+       "score": "31",
+       "team": {
+        "id": "2",
+        "abbreviation": "BUF",
+        "displayName": "Buffalo Bills",
+        "shortDisplayName": "Bills",
+        "name": "Bills",
+        "location": "Buffalo",
+        "color": "00338d",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "5-1"
+        }
+       ],
+       "linescores": [
+        {
+         "value": 14,
+         "displayValue": "14"
+        },
+        {
+         "value": 3,
+         "displayValue": "3"
+        },
+        {
+         "value": 7,
+         "displayValue": "7"
+        },
+        {
+         "value": 7,
+         "displayValue": "7"
+        }
+       ]
+      }
+     ],
+     "status": {
+      "clock": 0.0,
+      "displayClock": "0:00",
+      "period": 4,
+      "type": {
+       "id": "1",
+       "name": "STATUS_FINAL",
+       "state": "post",
+       "completed": true,
+       "description": "Final",
+       "detail": "Final",
+       "shortDetail": "Final"
+      }
+     },
+     "broadcasts": [
+      {
+       "market": "national",
+       "names": [
+        "NBC"
+       ]
+      }
+     ],
+     "leaders": [
+      {
+       "name": "passing",
+       "displayName": "Passing",
+       "shortDisplayName": "Passing",
+       "leaders": [
+        {
+         "displayValue": "298 YDS, 3 TD",
+         "athlete": {
+          "shortName": "J. Allen",
+          "displayName": "J. Allen"
+         },
+         "team": {
+          "abbreviation": "BUF"
+         }
+        }
+       ]
+      }
+     ],
+     "headlines": [
+      {
+       "shortLinkText": "Allen throws 3 TDs as Bills hold off Dolphins"
+      }
+     ]
+    }
+   ],
+   "status": {
+    "clock": 0.0,
+    "displayClock": "0:00",
+    "period": 4,
+    "type": {
+     "id": "1",
+     "name": "STATUS_FINAL",
+     "state": "post",
+     "completed": true,
+     "description": "Final",
+     "detail": "Final",
+     "shortDetail": "Final"
+    }
+   }
+  },
+  {
+   "id": "401901005",
+   "uid": "s:1~e:401901005",
+   "date": "2026-10-20T00:20Z",
+   "name": "Seattle Seahawks at Arizona Cardinals",
+   "shortName": "SEA @ ARI",
+   "competitions": [
+    {
+     "id": "401901005",
+     "date": "2026-10-20T00:20Z",
+     "neutralSite": false,
+     "venue": {
+      "fullName": "State Farm Stadium",
+      "address": {
+       "city": "City",
+       "state": "ST"
+      }
+     },
+     "competitors": [
+      {
+       "id": "22",
+       "homeAway": "home",
+       "winner": true,
+       "score": "27",
+       "team": {
+        "id": "22",
+        "abbreviation": "ARI",
+        "displayName": "Arizona Cardinals",
+        "shortDisplayName": "Cardinals",
+        "name": "Cardinals",
+        "location": "Arizona",
+        "color": "97233f",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "2-4"
+        }
+       ],
+       "linescores": [
+        {
+         "value": 7,
+         "displayValue": "7"
+        },
+        {
+         "value": 7,
+         "displayValue": "7"
+        },
+        {
+         "value": 3,
+         "displayValue": "3"
+        },
+        {
+         "value": 7,
+         "displayValue": "7"
+        },
+        {
+         "value": 3,
+         "displayValue": "3"
+        }
+       ]
+      },
+      {
+       "id": "26",
+       "homeAway": "away",
+       "winner": false,
+       "score": "24",
+       "team": {
+        "id": "26",
+        "abbreviation": "SEA",
+        "displayName": "Seattle Seahawks",
+        "shortDisplayName": "Seahawks",
+        "name": "Seahawks",
+        "location": "Seattle",
+        "color": "002244",
+        "alternateColor": "ffffff",
+        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png"
+       },
+       "records": [
+        {
+         "name": "overall",
+         "type": "total",
+         "summary": "4-2"
+        }
+       ],
+       "linescores": [
+        {
+         "value": 7,
+         "displayValue": "7"
+        },
+        {
+         "value": 10,
+         "displayValue": "10"
+        },
+        {
+         "value": 7,
+         "displayValue": "7"
+        },
+        {
+         "value": 0,
+         "displayValue": "0"
+        },
+        {
+         "value": 0,
+         "displayValue": "0"
+        }
+       ]
+      }
+     ],
+     "status": {
+      "clock": 0.0,
+      "displayClock": "0:00",
+      "period": 5,
+      "type": {
+       "id": "1",
+       "name": "STATUS_FINAL",
+       "state": "post",
+       "completed": true,
+       "description": "Final/OT",
+       "detail": "Final/OT",
+       "shortDetail": "Final/OT"
+      }
+     },
+     "broadcasts": [
+      {
+       "market": "national",
+       "names": [
+        "Prime Video"
+       ]
+      }
+     ]
+    }
+   ],
+   "status": {
+    "clock": 0.0,
+    "displayClock": "0:00",
+    "period": 5,
+    "type": {
+     "id": "1",
+     "name": "STATUS_FINAL",
+     "state": "post",
+     "completed": true,
+     "description": "Final/OT",
+     "detail": "Final/OT",
+     "shortDetail": "Final/OT"
+    }
+   }
+  }
+ ]
+}

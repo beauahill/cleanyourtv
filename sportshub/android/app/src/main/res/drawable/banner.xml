@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 320x180 Leanback banner: dark card with an accent stripe. Replace with a PNG if you want art. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#10141b" />
+            <size android:width="320dp" android:height="180dp" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+    <item android:left="0dp" android:right="300dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#ffb300" />
+        </shape>
+    </item>
+</layer-list>

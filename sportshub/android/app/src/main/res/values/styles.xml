@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SportsHub" parent="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">#07090d</item>
+        <item name="android:colorBackground">#07090d</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+</resources>

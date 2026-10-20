@@ -1,0 +1,48 @@
+# Walmart Onn 4K Streaming Stick, 2026 model (Google TV). Also a starting point for the Onn 4K Plus,
+# the 2024/2026 4K Pro and other plain Google TV devices with no manufacturer bloat.
+#
+# STATUS: composed from the Google TV package set these devices share, not yet verified on the stick
+# itself. Before applying, compare with what is really installed:
+#   TV_HOST=<stick ip> tools/venv/bin/python -I tools/tv.py 'pm list packages' | sort
+#   TV_HOST=<stick ip> tools/venv/bin/python -I tools/tv.py 'pm list packages -f' | grep -i -E 'onn|walmart'
+# Packages in this list that are not on the device are harmless (pm reports "not found"). Anything
+# Walmart-branded you find, add under "Vendor" with a note on what it does. Send the verified list
+# back as a PR and drop this paragraph.
+#
+# Apply:   TV_HOST=<stick ip> tools/disable.sh examples/onn-4k-streaming-stick/debloat.txt
+# Undo:    TV_HOST=<stick ip> tools/restore.sh examples/onn-4k-streaming-stick/debloat.txt com.google.android.apps.tv.launcherx
+# Everything is DISABLED, not uninstalled. Comment out any line you want to keep.
+#
+# Stock launcher: com.google.android.apps.tv.launcherx (Google TV Home, draws the ads and the
+# "For you" rows). It is NOT in this list: sportshub/android/build-and-install.sh disables it only
+# after the Sports Hub kiosk is installed and set as home, so a Home press never lands on nothing.
+# Keep: com.android.vending, com.google.android.gms, com.google.android.tv.frameworkpackagestubs,
+# com.android.tv.settings, com.google.android.inputmethod.latin (keyboard), the Bluetooth/remote
+# pairing services (com.google.android.tv.remote.* other than remote.service, com.android.bluetooth).
+
+# Google TV content, recommendations and promos
+com.google.android.tungsten.setupwraith     # setup wizard / fallback home that nags "finish setting up Google TV"; only after the kiosk is home
+com.google.android.videos                   # Google TV movie store app (rentals, "your library" promos)
+com.google.android.youtube.tvmusic          # YouTube Music
+com.google.android.play.games               # Play Games
+android.autoinstalls.config.google.gtvpai   # Play auto-installs pushed to the device after setup
+
+# Background services the hub does not need
+com.google.android.feedback
+com.google.android.marvin.talkback          # screen reader; re-enable from Settings > Accessibility if needed
+com.google.android.apps.tv.dreamx           # ambient-mode screensaver (the hub keeps the screen on itself)
+com.google.android.tv.remote.service        # Google TV phone-app remote; keep if you use the phone as a remote
+
+# Optional: uncomment what you don't use
+# com.google.android.katniss                # Google Assistant / voice search on the remote
+# com.google.android.apps.mediashell        # Chromecast built-in
+# com.netflix.ninja                         # Netflix
+# com.amazon.amazonvideo.livingroom         # Prime Video
+# com.disney.disneyplus                     # Disney+
+# com.wbd.stream                            # Max
+# com.cbs.ott                               # Paramount+
+# com.peacocktv.peacockandroid              # Peacock
+# com.google.android.youtube.tv             # YouTube
+# com.google.android.youtube.tvunplugged    # YouTube TV
+
+# Vendor (Walmart / Onn): none known yet, see STATUS above.

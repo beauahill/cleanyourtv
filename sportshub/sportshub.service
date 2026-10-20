@@ -1,0 +1,29 @@
+# systemd unit for the Sports Hub server on a Linux mini PC.
+#
+#   sudo cp -r sportshub /opt/sportshub
+#   sudo cp /opt/sportshub/sportshub.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now sportshub
+#   journalctl -u sportshub -f
+#
+# Edit /opt/sportshub/config.json and restart (sudo systemctl restart sportshub) to change leagues,
+# teams or the dock. The page itself (static/) is served live, so edits there only need a refresh.
+[Unit]
+Description=Sports Hub (TV dashboard server)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/sportshub
+ExecStart=/usr/bin/python3 /opt/sportshub/server.py --config /opt/sportshub/config.json --port 8777
+Restart=on-failure
+RestartSec=5
+# Drop privileges; the server only reads its own folder and talks to ESPN.
+DynamicUser=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

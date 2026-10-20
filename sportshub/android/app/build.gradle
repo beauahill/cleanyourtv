@@ -1,0 +1,32 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.sportshub.tv'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.sportshub.tv'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// No dependencies on purpose: a WebView, an Activity and nothing else. The 2026 Onn 4K stick has
+// 2 GB of RAM and 8 GB of storage, so the APK stays under 100 KB.
+dependencies {
+}

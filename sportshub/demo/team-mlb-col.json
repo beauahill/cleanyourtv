@@ -1,0 +1,200 @@
+{
+ "team": {
+  "id": "27",
+  "abbreviation": "COL",
+  "displayName": "Colorado Rockies",
+  "shortDisplayName": "Rockies",
+  "color": "33006f",
+  "logos": [
+   {
+    "href": "https://a.espncdn.com/i/teamlogos/mlb/500/col.png"
+   }
+  ],
+  "record": {
+   "items": [
+    {
+     "type": "total",
+     "summary": "2-1"
+    }
+   ]
+  },
+  "standingSummary": "NLDS, leads 2-1",
+  "nextEvent": [
+   {
+    "id": "401905001",
+    "uid": "s:1~e:401905001",
+    "date": "2026-10-20T00:08Z",
+    "name": "Los Angeles Dodgers at Colorado Rockies",
+    "shortName": "LAD @ COL",
+    "competitions": [
+     {
+      "id": "401905001",
+      "date": "2026-10-20T00:08Z",
+      "neutralSite": false,
+      "venue": {
+       "fullName": "Coors Field",
+       "address": {
+        "city": "City",
+        "state": "ST"
+       }
+      },
+      "competitors": [
+       {
+        "id": "27",
+        "homeAway": "home",
+        "winner": false,
+        "score": "4",
+        "team": {
+         "id": "27",
+         "abbreviation": "COL",
+         "displayName": "Colorado Rockies",
+         "shortDisplayName": "Rockies",
+         "name": "Rockies",
+         "location": "Colorado",
+         "color": "33006f",
+         "alternateColor": "ffffff",
+         "logo": "https://a.espncdn.com/i/teamlogos/mlb/500/col.png"
+        },
+        "records": [
+         {
+          "name": "overall",
+          "type": "total",
+          "summary": "2-1"
+         }
+        ],
+        "linescores": [
+         {
+          "value": 0,
+          "displayValue": "0"
+         },
+         {
+          "value": 2,
+          "displayValue": "2"
+         },
+         {
+          "value": 0,
+          "displayValue": "0"
+         },
+         {
+          "value": 1,
+          "displayValue": "1"
+         },
+         {
+          "value": 1,
+          "displayValue": "1"
+         },
+         {
+          "value": 0,
+          "displayValue": "0"
+         }
+        ]
+       },
+       {
+        "id": "19",
+        "homeAway": "away",
+        "winner": false,
+        "score": "3",
+        "team": {
+         "id": "19",
+         "abbreviation": "LAD",
+         "displayName": "Los Angeles Dodgers",
+         "shortDisplayName": "Dodgers",
+         "name": "Dodgers",
+         "location": "Los Angeles",
+         "color": "005a9c",
+         "alternateColor": "ffffff",
+         "logo": "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png"
+        },
+        "records": [
+         {
+          "name": "overall",
+          "type": "total",
+          "summary": "1-2"
+         }
+        ],
+        "linescores": [
+         {
+          "value": 1,
+          "displayValue": "1"
+         },
+         {
+          "value": 0,
+          "displayValue": "0"
+         },
+         {
+          "value": 0,
+          "displayValue": "0"
+         },
+         {
+          "value": 2,
+          "displayValue": "2"
+         },
+         {
+          "value": 0,
+          "displayValue": "0"
+         },
+         {
+          "value": 0,
+          "displayValue": "0"
+         },
+         {
+          "value": 0,
+          "displayValue": "0"
+         }
+        ]
+       }
+      ],
+      "status": {
+       "clock": 0.0,
+       "displayClock": "",
+       "period": 7,
+       "type": {
+        "id": "1",
+        "name": "STATUS_IN_PROGRESS",
+        "state": "in",
+        "completed": false,
+        "description": "In Progress",
+        "detail": "In Progress",
+        "shortDetail": "In Progress"
+       }
+      },
+      "broadcasts": [
+       {
+        "market": "national",
+        "names": [
+         "FS1"
+        ]
+       }
+      ],
+      "situation": {
+       "balls": 2,
+       "strikes": 1,
+       "outs": 1,
+       "onFirst": true,
+       "onSecond": false,
+       "onThird": true,
+       "isTopInning": false,
+       "lastPlay": {
+        "text": "Ezequiel Tovar singles on a line drive to left"
+       }
+      }
+     }
+    ],
+    "status": {
+     "clock": 0.0,
+     "displayClock": "",
+     "period": 7,
+     "type": {
+      "id": "1",
+      "name": "STATUS_IN_PROGRESS",
+      "state": "in",
+      "completed": false,
+      "description": "In Progress",
+      "detail": "In Progress",
+      "shortDetail": "In Progress"
+     }
+    }
+   }
+  ]
+ }
+}

@@ -1,0 +1,53 @@
+{
+  "title": "Man Cave",
+  "timezone": "America/Denver",
+
+  "leagues": [
+    {"key": "nfl",   "label": "NFL",   "sport": "football",   "league": "nfl"},
+    {"key": "cfb",   "label": "CFB",   "sport": "football",   "league": "college-football", "params": {"groups": "80"}},
+    {"key": "nba",   "label": "NBA",   "sport": "basketball", "league": "nba"},
+    {"key": "nhl",   "label": "NHL",   "sport": "hockey",     "league": "nhl"},
+    {"key": "mlb",   "label": "MLB",   "sport": "baseball",   "league": "mlb"},
+    {"key": "ncaam", "label": "NCAAM", "sport": "basketball", "league": "mens-college-basketball", "params": {"groups": "50"}, "news": false}
+  ],
+
+  "favorites": [
+    {"league": "nfl", "team": "den"},
+    {"league": "cfb", "team": "wyo"},
+    {"league": "nba", "team": "den"},
+    {"league": "nhl", "team": "col"},
+    {"league": "mlb", "team": "col"}
+  ],
+
+  "apps": [
+    {"label": "ESPN",        "package": "com.espn.score_center"},
+    {"label": "YouTube TV",  "package": "com.google.android.youtube.tvunplugged"},
+    {"label": "FOX Sports",  "package": "com.foxsports.videogo"},
+    {"label": "Peacock",     "package": "com.peacocktv.peacockandroid"},
+    {"label": "Paramount+",  "package": "com.cbs.ott"},
+    {"label": "Prime Video", "package": "com.amazon.amazonvideo.livingroom"},
+    {"label": "NFL",         "package": "com.gotv.nflgamecenter.us.lite"},
+    {"label": "YouTube",     "package": "com.google.android.youtube.tv"},
+    {"label": "Settings",    "package": "com.android.tv.settings"}
+  ],
+
+  "refresh": {
+    "liveSeconds": 30,
+    "idleSeconds": 300,
+    "cacheSeconds": 20,
+    "teamCacheSeconds": 900,
+    "newsCacheSeconds": 600
+  },
+  "idleRotateSeconds": 20,
+  "showOdds": true,
+
+  "fantasy": {
+    "enabled": false,
+    "title": "Fantasy",
+    "command": "",
+    "url": "",
+    "cwd": "",
+    "cacheSeconds": 120,
+    "timeoutSeconds": 30
+  }
+}

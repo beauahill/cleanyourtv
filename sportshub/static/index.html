@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sports Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app" class="app">
+
+  <header class="top">
+    <div class="clock">
+      <div id="clock-time" class="clock-time">--:--</div>
+      <div id="clock-date" class="clock-date"></div>
+    </div>
+    <div id="title" class="title">Sports Hub</div>
+    <div class="status">
+      <div id="live-pill" class="pill pill-live hidden"><span class="dot"></span><span id="live-count">0</span> LIVE</div>
+      <div id="stale-pill" class="pill pill-stale hidden">OFFLINE · cached</div>
+      <div id="updated" class="updated"></div>
+    </div>
+  </header>
+
+  <nav id="tabs" class="tabs" aria-label="Leagues"></nav>
+
+  <main class="main">
+    <section id="games" class="games" aria-label="Games"></section>
+    <aside class="rail">
+      <div class="rail-section">
+        <h2>My Teams</h2>
+        <div id="myteams" class="myteams"></div>
+      </div>
+      <div id="fantasy-section" class="rail-section hidden">
+        <h2 id="fantasy-title">Fantasy</h2>
+        <div id="fantasy" class="fantasy"></div>
+      </div>
+      <div class="rail-section rail-news">
+        <h2>Headlines</h2>
+        <ul id="news" class="news"></ul>
+      </div>
+    </aside>
+  </main>
+
+  <footer id="dock" class="dock" aria-label="Apps"></footer>
+
+  <div id="overlay" class="overlay hidden" role="dialog">
+    <div id="overlay-card" class="overlay-card"></div>
+    <div class="overlay-hint">BACK to close · ▲▼ scroll</div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

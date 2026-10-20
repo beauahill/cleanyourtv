@@ -1,0 +1,221 @@
+{
+ "team": {
+  "id": "7",
+  "abbreviation": "DEN",
+  "displayName": "Denver Broncos",
+  "shortDisplayName": "Broncos",
+  "color": "fb4f14",
+  "logos": [
+   {
+    "href": "https://a.espncdn.com/i/teamlogos/nfl/500/den.png"
+   }
+  ],
+  "record": {
+   "items": [
+    {
+     "type": "total",
+     "summary": "4-2"
+    }
+   ]
+  },
+  "standingSummary": "2nd in AFC West",
+  "nextEvent": [
+   {
+    "id": "401901001",
+    "uid": "s:1~e:401901001",
+    "date": "2026-10-20T00:15Z",
+    "name": "Denver Broncos at Kansas City Chiefs",
+    "shortName": "DEN @ KC",
+    "competitions": [
+     {
+      "id": "401901001",
+      "date": "2026-10-20T00:15Z",
+      "neutralSite": false,
+      "venue": {
+       "fullName": "GEHA Field at Arrowhead Stadium",
+       "address": {
+        "city": "City",
+        "state": "ST"
+       }
+      },
+      "competitors": [
+       {
+        "id": "12",
+        "homeAway": "home",
+        "winner": false,
+        "score": "17",
+        "team": {
+         "id": "12",
+         "abbreviation": "KC",
+         "displayName": "Kansas City Chiefs",
+         "shortDisplayName": "Chiefs",
+         "name": "Chiefs",
+         "location": "Kansas City",
+         "color": "e31837",
+         "alternateColor": "ffffff",
+         "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png"
+        },
+        "records": [
+         {
+          "name": "overall",
+          "type": "total",
+          "summary": "5-1"
+         }
+        ],
+        "linescores": [
+         {
+          "value": 7,
+          "displayValue": "7"
+         },
+         {
+          "value": 3,
+          "displayValue": "3"
+         },
+         {
+          "value": 7,
+          "displayValue": "7"
+         }
+        ]
+       },
+       {
+        "id": "7",
+        "homeAway": "away",
+        "winner": false,
+        "score": "20",
+        "team": {
+         "id": "7",
+         "abbreviation": "DEN",
+         "displayName": "Denver Broncos",
+         "shortDisplayName": "Broncos",
+         "name": "Broncos",
+         "location": "Denver",
+         "color": "fb4f14",
+         "alternateColor": "ffffff",
+         "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/den.png"
+        },
+        "records": [
+         {
+          "name": "overall",
+          "type": "total",
+          "summary": "4-2"
+         }
+        ],
+        "linescores": [
+         {
+          "value": 3,
+          "displayValue": "3"
+         },
+         {
+          "value": 10,
+          "displayValue": "10"
+         },
+         {
+          "value": 7,
+          "displayValue": "7"
+         }
+        ]
+       }
+      ],
+      "status": {
+       "clock": 0.0,
+       "displayClock": "6:42",
+       "period": 3,
+       "type": {
+        "id": "1",
+        "name": "STATUS_IN_PROGRESS",
+        "state": "in",
+        "completed": false,
+        "description": "In Progress",
+        "detail": "In Progress",
+        "shortDetail": "In Progress"
+       }
+      },
+      "broadcasts": [
+       {
+        "market": "national",
+        "names": [
+         "ESPN"
+        ]
+       }
+      ],
+      "situation": {
+       "downDistanceText": "2nd & 7 at KC 35",
+       "possession": "7",
+       "isRedZone": false,
+       "lastPlay": {
+        "text": "B.Nix pass short left to C.Sutton for 12 yards"
+       }
+      },
+      "leaders": [
+       {
+        "name": "passing",
+        "displayName": "Passing",
+        "shortDisplayName": "Passing",
+        "leaders": [
+         {
+          "displayValue": "214 YDS, 2 TD",
+          "athlete": {
+           "shortName": "B. Nix",
+           "displayName": "B. Nix"
+          },
+          "team": {
+           "abbreviation": "DEN"
+          }
+         }
+        ]
+       },
+       {
+        "name": "rushing",
+        "displayName": "Rushing",
+        "shortDisplayName": "Rushing",
+        "leaders": [
+         {
+          "displayValue": "71 YDS",
+          "athlete": {
+           "shortName": "I. Pacheco",
+           "displayName": "I. Pacheco"
+          },
+          "team": {
+           "abbreviation": "KC"
+          }
+         }
+        ]
+       },
+       {
+        "name": "receiving",
+        "displayName": "Receiving",
+        "shortDisplayName": "Receiving",
+        "leaders": [
+         {
+          "displayValue": "6 REC, 98 YDS",
+          "athlete": {
+           "shortName": "C. Sutton",
+           "displayName": "C. Sutton"
+          },
+          "team": {
+           "abbreviation": "DEN"
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "status": {
+     "clock": 0.0,
+     "displayClock": "6:42",
+     "period": 3,
+     "type": {
+      "id": "1",
+      "name": "STATUS_IN_PROGRESS",
+      "state": "in",
+      "completed": false,
+      "description": "In Progress",
+      "detail": "In Progress",
+      "shortDetail": "In Progress"
+     }
+    }
+   }
+  ]
+ }
+}

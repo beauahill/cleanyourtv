@@ -59,6 +59,21 @@ step with screenshots from the TV. If you'd rather do it by hand, the pieces are
 | [`tools/b64push.py`](tools/b64push.py) | Uploads larger files (APKs) as base64 chunks with an md5 check. |
 | [`tools/disable.sh`](tools/disable.sh), [`tools/restore.sh`](tools/restore.sh) | Apply or undo a debloat list. |
 | [`examples/`](examples/) | Per-TV debloat lists. Add yours, see [CONTRIBUTING.md](CONTRIBUTING.md). |
+| [`sportshub/`](sportshub/) | A live-scores home screen for a streaming stick: Python server on a mini PC, TV web page, kiosk APK. See its [README](sportshub/README.md). |
+
+## Sports Hub
+
+A second kind of home screen, for a TV that mostly shows sports. `sportshub/` is a one-file Python
+server that pulls live scores, situations, odds, standings and headlines from ESPN for the leagues
+and teams you configure, and a D-pad-driven page that a tiny kiosk APK shows as the stick's home.
+Pick a game for the linescore and scoring plays, pick a dock tile to launch ESPN or YouTube TV.
+Everything is cached, so when ESPN hiccups the last scores stay up.
+
+<p align="center">
+  <img src="docs/sportshub-home.png" alt="Sports Hub home screen" width="100%">
+</p>
+
+Setup, configuration and the Onn stick debloat steps are in [`sportshub/README.md`](sportshub/README.md).
 
 ## The launcher
 

@@ -5,6 +5,12 @@ launcher/.gradle/
 launcher/build/
 launcher/app/build/
 launcher/local.properties
+sportshub/android/.gradle/
+sportshub/android/build/
+sportshub/android/app/build/
+sportshub/android/local.properties
+sportshub/__pycache__/
+sportshub/config.local.json
 # your own TV's dumps (serial, android_id, device names) stay local
 backup/
 .DS_Store
