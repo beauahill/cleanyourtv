@@ -26,6 +26,11 @@ import urllib.request
 YEAR = datetime.date.today().year if datetime.date.today().month >= 8 else datetime.date.today().year - 1
 HOSTS = ["https://lm-api-reads.fantasy.espn.com", "https://fantasy.espn.com"]
 POS = {1: "QB", 2: "RB", 3: "WR", 4: "TE", 5: "K", 16: "D/ST"}
+SLOT = {0: "QB", 2: "RB", 4: "WR", 6: "TE", 16: "D/ST", 17: "K", 23: "FLEX", 7: "OP", 20: "BN", 21: "IR"}
+PRO = {1: "ATL", 2: "BUF", 3: "CHI", 4: "CIN", 5: "CLE", 6: "DAL", 7: "DEN", 8: "DET", 9: "GB", 10: "TEN", 11: "IND",
+       12: "KC", 13: "LV", 14: "LAR", 15: "MIA", 16: "MIN", 17: "NE", 18: "NO", 19: "NYG", 20: "NYJ", 21: "PHI",
+       22: "ARI", 23: "PIT", 24: "LAC", 25: "SF", 26: "SEA", 27: "TB", 28: "WSH", 29: "CAR", 30: "JAX", 33: "BAL",
+       34: "HOU"}
 BENCH_SLOTS = {20, 21}  # BN, IR
 INJ = {"ACTIVE": "", "QUESTIONABLE": "Q", "DOUBTFUL": "D", "OUT": "OUT", "INJURY_RESERVE": "IR", "SUSPENSION": "SUSP"}
 
@@ -75,6 +80,26 @@ def starters(team):
             continue
         p = (e.get("playerPoolEntry") or {}).get("player") or e.get("player") or {}
         out.append(p)
+    return out
+
+
+SLOT_ORDER = ["QB", "RB", "WR", "TE", "FLEX", "OP", "D/ST", "K", "BN", "IR"]
+
+
+def roster(team, week):
+    """Every rostered player with slot, points and projection, starters first in lineup order."""
+    out = []
+    for e in team.get("roster", {}).get("entries", []) or []:
+        p = (e.get("playerPoolEntry") or {}).get("player") or e.get("player") or {}
+        slot = SLOT.get(e.get("lineupSlotId"), "?")
+        status = INJ.get(p.get("injuryStatus", "ACTIVE"), p.get("injuryStatus", "") or "")
+        out.append({
+            "slot": slot, "name": p.get("fullName", "?"), "pos": POS.get(p.get("defaultPositionId"), ""),
+            "team": PRO.get(p.get("proTeamId"), ""), "status": status,
+            "points": week_points(p, week, 0), "proj": week_points(p, week, 1),
+            "bench": slot in ("BN", "IR"),
+        })
+    out.sort(key=lambda r: (SLOT_ORDER.index(r["slot"]) if r["slot"] in SLOT_ORDER else 50))
     return out
 
 
@@ -147,7 +172,14 @@ def summarise(data, my_name):
     lines = []
     if flags:
         lines.append("Flags: " + ", ".join(flags[:4]))
-    return {"title": f"Fantasy · Week {week}", "rows": rows, "lines": lines}
+    matchup = {"week": week,
+               "me": {"name": team_name(mine), "record": record, "points": round(my_pts, 1), "proj": round(my_proj, 1),
+                      "roster": roster(mine, week)}}
+    if opp:
+        orec = (opp.get("record") or {}).get("overall") or {}
+        matchup["opp"] = {"name": team_name(opp), "record": f"{orec.get('wins', 0)}-{orec.get('losses', 0)}",
+                          "points": round(opp_pts, 1), "proj": round(opp_proj, 1), "roster": roster(opp, week)}
+    return {"title": f"Fantasy · Week {week}", "rows": rows, "lines": lines, "matchup": matchup}
 
 
 def main():

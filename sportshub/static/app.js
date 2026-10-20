@@ -122,8 +122,10 @@
 
   async function loadFantasy() {
     if (!state.config || !state.config.fantasy || !state.config.fantasy.enabled) return;
+    const hadTab = !!state.fantasy;
     try { state.fantasy = await getJSON("/api/fantasy"); } catch (e) { /* keep old */ }
-    renderFantasy();
+    if (!hadTab) renderTabs();
+    if (state.tab === "fantasy") renderGames();
   }
 
   function scheduleToday() {
@@ -212,6 +214,9 @@
     const withGames = leagues.filter((l) => l.games.length);
     const items = [{ key: "all", label: "Today", count: allGames().length, live: (state.today && state.today.liveCount) || 0 }]
       .concat(withGames.map((l) => ({ key: l.league, label: l.label, count: l.games.length, live: l.games.filter((g) => g.state === "in").length })));
+    if (state.fantasy && state.fantasy.enabled !== false && state.config && state.config.fantasy && state.config.fantasy.enabled) {
+      items.push({ key: "fantasy", label: (state.config.fantasy.title || "Fantasy").replace(/ ·.*$/, ""), count: "", live: 0 });
+    }
     if (state.tab !== "all" && !items.some((t) => t.key === state.tab)) state.tab = "all";
     const prevTabId = state.focus && state.focus.dataset.focusable === "tab" ? state.focus.id : null;
     tabs.innerHTML = "";
@@ -221,7 +226,7 @@
       b.dataset.tab = t.key;
       b.id = "tab-" + t.key;
       b.appendChild(el("span", null, t.label));
-      b.appendChild(el("span", "count", String(t.count)));
+      if (t.count !== "") b.appendChild(el("span", "count", String(t.count)));
       if (t.live) b.appendChild(el("span", "live-dot"));
       b.onclick = () => selectTab(t.key);
       tabs.appendChild(b);
@@ -245,6 +250,8 @@
     const root = $("#games");
     const prevFocusId = state.focus && state.focus.dataset.focusable === "card" ? state.focus.id : null;
     root.innerHTML = "";
+    root.classList.toggle("fantasy-page", state.tab === "fantasy");
+    if (state.tab === "fantasy") { renderFantasyPage(root); if (prevFocusId) focusEl($("#tab-fantasy"), true); return; }
     const leagues = state.today ? state.today.leagues : [];
     let groups;
     if (state.tab === "all") {
@@ -401,22 +408,85 @@
     });
   }
 
-  function renderFantasy() {
-    const sec = $("#fantasy-section");
+  function liveProTeams() {
+    // NFL pro-team abbreviations whose game is in progress right now, for the live dot on players
+    const out = {};
+    allGames().forEach((g) => { if (g.league === "nfl" && g.state === "in") { out[g.home.abbr] = g; out[g.away.abbr] = g; } });
+    return out;
+  }
+
+  function renderFantasyPage(root) {
     const f = state.fantasy;
-    if (!f || !f.enabled) { sec.classList.add("hidden"); return; }
-    sec.classList.remove("hidden");
-    $("#fantasy-title").textContent = f.title || (state.config.fantasy && state.config.fantasy.title) || "Fantasy";
-    const root = $("#fantasy");
-    root.innerHTML = "";
-    (f.rows || []).slice(0, f.maxRows || 4).forEach((r) => {
-      const row = el("div", "frow" + (r.strong ? " strong" : ""));
-      row.appendChild(el("span", "lbl", r.label || ""));
-      row.appendChild(el("span", "val", r.value != null ? String(r.value) : ""));
-      if (r.sub) row.appendChild(el("span", "sub", r.sub));
-      root.appendChild(row);
-    });
-    (f.lines || []).slice(0, 2).forEach((t) => root.appendChild(el("div", "fline", t)));
+    const wrap = el("div", "fx");
+    if (!f || f.enabled === false) { wrap.appendChild(el("div", "games-empty", "Fantasy is loading…")); root.appendChild(wrap); return; }
+    const m = f.matchup;
+    if (!m) {
+      // generic producer: rows and lines, big
+      const box = el("div", "fx-simple");
+      (f.rows || []).forEach((r) => {
+        const row = el("div", "frow");
+        row.appendChild(el("span", "lbl", r.label || ""));
+        row.appendChild(el("span", "val", r.value != null ? String(r.value) : ""));
+        if (r.sub) row.appendChild(el("span", "sub", r.sub));
+        box.appendChild(row);
+      });
+      (f.lines || []).forEach((t) => box.appendChild(el("div", "fline", t)));
+      if (!box.children.length) box.appendChild(el("div", "fline", f.title || "No fantasy data"));
+      wrap.appendChild(box);
+      root.appendChild(wrap);
+      return;
+    }
+    const live = liveProTeams();
+    const head = el("div", "fx-head");
+    const mkTeam = (t, right) => {
+      const box = el("div", "fx-team" + (right ? " right" : ""));
+      box.appendChild(el("div", "nm", t.name));
+      box.appendChild(el("div", "rec", t.record || ""));
+      box.appendChild(el("div", "pts", (t.points != null ? t.points : 0).toFixed(1)));
+      box.appendChild(el("div", "proj", "proj " + (t.proj != null ? t.proj.toFixed(1) : "–")));
+      return box;
+    };
+    const me = mkTeam(m.me, false);
+    const opp = m.opp ? mkTeam(m.opp, true) : el("div", "fx-team right");
+    if (m.opp && m.me.points !== m.opp.points) (m.me.points > m.opp.points ? me : opp).classList.add("lead");
+    head.appendChild(me);
+    const vs = el("div", "fx-vs", m.opp ? "VS" : "BYE");
+    vs.appendChild(el("span", "wk", "Week " + (m.week || "")));
+    head.appendChild(vs);
+    head.appendChild(opp);
+    wrap.appendChild(head);
+
+    const rosters = el("div", "fx-rosters");
+    const mkRoster = (t) => {
+      const box = el("div", "fx-roster");
+      const r = t.roster || [];
+      box.appendChild(el("h3", null, "Starters"));
+      r.filter((p) => !p.bench).forEach((p) => box.appendChild(mkRow(p)));
+      const bench = r.filter((p) => p.bench);
+      if (bench.length) {
+        box.appendChild(el("h3", null, "Bench"));
+        bench.forEach((p) => box.appendChild(mkRow(p)));
+      }
+      return box;
+    };
+    const mkRow = (p) => {
+      const row = el("div", "fx-row" + (p.bench ? " bench" : ""));
+      row.appendChild(el("span", "slot", p.slot || ""));
+      const name = el("span", "name");
+      name.appendChild(el("span", null, p.name || ""));
+      if (p.status) name.appendChild(el("span", "st" + (p.status === "Q" ? " q" : ""), p.status));
+      if (p.team && live[p.team]) name.appendChild(el("span", "ld"));
+      row.appendChild(name);
+      row.appendChild(el("span", "pro", p.team || ""));
+      row.appendChild(el("span", "pts", p.points != null ? p.points.toFixed(1) : "–"));
+      row.appendChild(el("span", "pj", p.proj != null ? p.proj.toFixed(1) : ""));
+      return row;
+    };
+    rosters.appendChild(mkRoster(m.me));
+    if (m.opp) rosters.appendChild(mkRoster(m.opp));
+    wrap.appendChild(rosters);
+    if (f.lines && f.lines.length) wrap.appendChild(el("div", "fx-simple fline", f.lines.join("   ·   ")));
+    root.appendChild(wrap);
   }
 
   // ------------------------------------------------------------------ render: dock

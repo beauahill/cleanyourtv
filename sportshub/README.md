@@ -232,10 +232,13 @@ background-image), `logos` (up to two image URLs flanking the title). ESPN logo 
 
 ### Fantasy hook
 
+When enabled, a **Fantasy** tab appears after the leagues: your matchup with live points and
+projections, both starting lineups side by side (slot, player, pro team, points, projection,
+injury flags, a live dot while that player's NFL game is on) and the benches.
+
 **ESPN Fantasy Football, ready made.** `adapters/espn_fantasy.py` reads an `ff_config.json` with
 `league_id`, `team_name` and, for a private league, the `espn_s2` and `swid` cookies, and prints
-your live matchup, record, top three starters and injury flags. Standard library only. In
-`config.local.json`:
+everything the tab needs. Standard library only. In `config.local.json`:
 
 ```json
 "fantasy": {"enabled": true,
@@ -260,9 +263,10 @@ Expected output, either or both keys:
  "lines": ["Nix 24.6  ·  Sutton 18.2"]}
 ```
 
-`rows` render as label / value pairs, `lines` as plain text; the first six of each show. Add a
-`--hub-json` flag to `ff.py` that prints that shape and you are done. The server caches the result,
-so the script runs at most once per `cacheSeconds`.
+`rows` render as large label / value pairs on the Fantasy tab, `lines` as plain text underneath.
+The ESPN adapter additionally sends a `matchup` object (see its output) which the tab renders as
+the full two-roster view. The server caches the result, so the command runs at most once per
+`cacheSeconds`.
 
 ## Running as a service
 
