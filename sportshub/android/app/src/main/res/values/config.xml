@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Kiosk configuration. The URL can also be changed without rebuilding:
-    tools/tv.py 'am start -n com.sportshub.tv/.MainActivity --es url http://192.168.1.50:8777/'
+    tools/tv.py 'am start -n com.sportshub.tv/.MainActivity' with an extra string "url" (see STICK-SETUP.md)
   The app remembers the last URL it was given.
 -->
 <resources>
