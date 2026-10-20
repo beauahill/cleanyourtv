@@ -349,7 +349,14 @@ def normalise_event(ev, league_cfg, favorites, tz):
 
     detail = stype.get("shortDetail") or stype.get("detail") or ""
     if state == "pre":
-        detail = start_local.strftime("%-I:%M %p").lstrip("0") if start_local else detail
+        # ESPN's football scoreboards cover the whole week, so say which day when it is not today.
+        if start_local:
+            detail = start_local.strftime("%-I:%M %p")
+            day = _day_label(start_local, tz)
+            if day:
+                detail = f"{day} {detail}"
+            if (stype.get("name") == "STATUS_POSTPONED") or "TBD" in (stype.get("shortDetail") or ""):
+                detail = stype.get("shortDetail") or detail
     elif state == "in":
         clock = status.get("displayClock") or ""
         plabel = _period_label(sport, league, period, state)
@@ -422,6 +429,20 @@ def normalise_event(ev, league_cfg, favorites, tz):
         "favorite": is_fav,
         "notes": " ".join(n.get("headline", "") for n in comp.get("notes", []) or [] if n.get("headline")),
     }
+
+
+def _day_label(dt_local, tz):
+    today = datetime.now(tz).date()
+    d = dt_local.date()
+    if d == today:
+        return ""
+    if d == today + timedelta(days=1):
+        return "Tomorrow"
+    if d == today - timedelta(days=1):
+        return "Yesterday"
+    if abs((d - today).days) < 7:
+        return dt_local.strftime("%a")
+    return dt_local.strftime("%a %-m/%-d")
 
 
 def _to_local(iso, tz):
