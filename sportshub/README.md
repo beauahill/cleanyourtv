@@ -233,6 +233,17 @@ live indicators, both logos beside the title). Any colour can be overridden next
 "theme": {"preset": "wyo-bills", "title": "#ffffff", "logos": ["https://a.espncdn.com/i/teamlogos/ncaa/500/2751.png"]}
 ```
 
+**Custom title font.** Put a `.ttf`/`.otf` in `static/fonts/custom/` (git-ignored, so your
+downloaded fonts stay out of the repo) and add it to the theme:
+
+```json
+"theme": {"preset": "wyo-bills",
+          "titleFont": {"file": "fonts/custom/wyoming.ttf", "size": "2.8rem", "letterSpacing": "0.08em", "callouts": true}}
+```
+
+`callouts: true` also sets the big TOUCHDOWN / GOAL text in that font. Check the font's licence
+before using it on anything public; most team "fan fonts" are personal-use only.
+
 Keys: `accent` (focus ring, favourite edge), `accent2` / `accent2Fg` (active tab), `live` /
 `liveText`, `bg`, `panel`, `panel2`, `line`, `title`, `text`, `muted`, `dim`, `gradient` (any CSS
 background-image), `logos` (up to two image URLs flanking the title). ESPN logo URLs follow

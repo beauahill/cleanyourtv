@@ -756,6 +756,9 @@ def main(argv=None):
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format="%(asctime)s %(levelname)s %(message)s")
     mimetypes.add_type("font/ttf", ".ttf")
+    mimetypes.add_type("font/otf", ".otf")
+    mimetypes.add_type("font/woff", ".woff")
+    mimetypes.add_type("font/woff2", ".woff2")
     cfg = load_config(args.config)
     Handler.api = Api(cfg, Demo(args.demo))
     srv = ThreadingHTTPServer((args.host, args.port), Handler)

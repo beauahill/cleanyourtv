@@ -71,12 +71,35 @@
     Object.keys(map).forEach((k) => { if (t[k]) root.setProperty(map[k], t[k]); });
     const rgb = hexToRgb(t.accent);
     if (rgb) root.setProperty("--accent-rgb", rgb);
+    applyTitleFont(t.titleFont);
     const logos = t.logos || [];
     [["#title-logo-left", logos[0]], ["#title-logo-right", logos[1] || (logos.length === 1 ? null : null)]].forEach(([sel, src]) => {
       const img = $(sel);
       if (src) { img.src = src; img.classList.remove("hidden"); img.onerror = () => img.classList.add("hidden"); }
       else img.classList.add("hidden");
     });
+  }
+
+  // Custom title font: "titleFont": {"file": "fonts/custom/wyoming.ttf", "size": "2.6rem",
+  // "letterSpacing": "0.1em", "weight": 400, "callouts": true}. Fonts you add yourself go under
+  // static/fonts/custom/ which is git-ignored.
+  function applyTitleFont(tf) {
+    const root = document.documentElement.style;
+    const old = document.getElementById("title-font-face");
+    if (old) old.remove();
+    if (!tf || !tf.file) {
+      ["--title-font", "--title-size", "--title-spacing", "--title-weight", "--callout-font"].forEach((v) => root.removeProperty(v));
+      return;
+    }
+    const style = el("style");
+    style.id = "title-font-face";
+    style.textContent = '@font-face { font-family: "HubTitle"; src: url("' + tf.file.replace(/"/g, "") + '"); font-display: swap; }';
+    document.head.appendChild(style);
+    root.setProperty("--title-font", '"HubTitle", "Outfit", sans-serif');
+    if (tf.size) root.setProperty("--title-size", tf.size);
+    if (tf.letterSpacing != null) root.setProperty("--title-spacing", tf.letterSpacing);
+    if (tf.weight != null) root.setProperty("--title-weight", String(tf.weight));
+    if (tf.callouts !== false) root.setProperty("--callout-font", '"HubTitle", "Outfit", sans-serif');
   }
 
   // ------------------------------------------------------------------ data
@@ -348,6 +371,7 @@
     const root = $("#myteams");
     root.innerHTML = "";
     const teams = (state.myteams && state.myteams.teams) || [];
+    root.classList.toggle("dense", teams.length > 4);
     if (!teams.length) {
       root.appendChild(el("div", "myteam-empty", state.config && state.config.favorites && state.config.favorites.length ? "…" : "Add favourites in config.json"));
       return;
@@ -1157,7 +1181,7 @@
   }
 
   // Demo callouts: press 0 on the page, or open /?demo=score to play every sport once.
-  const DEMO_SPORTS = ["football", "hockey", "baseball", "basketball", "soccer"];
+  const DEMO_SPORTS = ["football", "hockey", "baseball", "soccer"]; // basketball never calls out: too frequent
   let demoIndex = 0;
   function demoCallout(sport) {
     sport = sport || DEMO_SPORTS[demoIndex++ % DEMO_SPORTS.length];
