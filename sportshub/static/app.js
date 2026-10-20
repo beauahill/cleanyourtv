@@ -1103,7 +1103,14 @@
 
   const ICONS = {
     football: '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="46" ry="27" fill="#7a3b12" stroke="#f2e6d8" stroke-width="3"/><path d="M30 50h40M38 43v14M46 43v14M54 43v14M62 43v14" stroke="#f2e6d8" stroke-width="3" stroke-linecap="round"/></svg>',
-    hockey: '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="44" ry="18" fill="#111" stroke="#555" stroke-width="3"/><ellipse cx="50" cy="42" rx="44" ry="18" fill="#222" stroke="#666" stroke-width="3"/></svg>',
+    hockey: '<svg viewBox="0 0 100 100">'
+      + '<defs><radialGradient id="gl" cx="40%" cy="35%" r="65%"><stop offset="0" stop-color="#ffb3b3"/><stop offset="0.35" stop-color="#ff1a1a"/><stop offset="1" stop-color="#7a0000"/></radialGradient></defs>'
+      + '<rect x="18" y="72" width="64" height="12" rx="3" fill="#2b2b2b" stroke="#555" stroke-width="2"/>'
+      + '<rect x="28" y="64" width="44" height="10" rx="2" fill="#3a3a3a"/>'
+      + '<path d="M26 66 V40 a24 24 0 0 1 48 0 V66 Z" fill="url(#gl)" stroke="#ff6666" stroke-width="2"/>'
+      + '<path d="M34 44 a16 16 0 0 1 12 -14" fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="3" stroke-linecap="round"/>'
+      + '<path d="M26 52 h48 M26 59 h48" stroke="#5a0000" stroke-width="1.5" stroke-opacity="0.6"/>'
+      + '</svg>',
     baseball: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#f6f1e7" stroke="#ccc" stroke-width="2"/><path d="M22 14q28 36 0 72M78 14q-28 36 0 72" fill="none" stroke="#c0392b" stroke-width="4"/><path d="M26 22l8 4M24 32l8 3M24 44l8 1M24 56l8-1M24 68l8-3M26 78l8-4M74 22l-8 4M76 32l-8 3M76 44l-8 1M76 56l-8-1M76 68l-8-3M74 78l-8-4" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round"/></svg>',
     soccer: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#fafafa" stroke="#ccc" stroke-width="2"/><polygon points="50,28 68,41 61,62 39,62 32,41" fill="#111"/><path d="M50 28V10M68 41l17-6M61 62l11 14M39 62L28 76M32 41l-17-6" stroke="#111" stroke-width="5"/></svg>',
     basketball: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#e8742c" stroke="#8a3f10" stroke-width="2"/><path d="M50 6v88M6 50h88M18 18q32 32 64 64M82 18q-32 32-64 64" fill="none" stroke="#3a1a08" stroke-width="3"/></svg>',

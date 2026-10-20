@@ -275,10 +275,10 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 /* ---------- score animations, one per sport ---------- */
 .callout-lamp { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
 .callout[data-sport="hockey"] .callout-lamp {
-  background: radial-gradient(ellipse at 50% -10%, rgba(255, 30, 30, 0.95), rgba(255, 30, 30, 0.25) 35%, transparent 60%);
-  animation: lamp 0.5s linear infinite;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 20, 20, 0.95), rgba(255, 20, 20, 0.35) 30%, rgba(120, 0, 0, 0.25) 60%, transparent 80%);
+  animation: lamp 0.45s steps(2, end) infinite;
 }
-@keyframes lamp { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
+@keyframes lamp { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
 .callout-icon { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
 .callout-icon svg { position: absolute; width: 14rem; height: 14rem; filter: drop-shadow(0 1rem 2rem rgba(0,0,0,0.5)); }
 /* football: tumbles end over end across the screen */
@@ -288,9 +288,16 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
   50% { transform: translate(60vw, -14rem) rotate(540deg); }
   100% { transform: translate(120vw, 6rem) rotate(1080deg); }
 }
-/* hockey: puck slides in and stops dead, lamp flashes */
-.callout[data-sport="hockey"] .callout-icon svg { top: 70%; left: -16rem; width: 9rem; height: 9rem; animation: puck 1.1s cubic-bezier(.1,.9,.2,1) forwards; }
-@keyframes puck { from { transform: translateX(0) rotate(0); } to { transform: translateX(calc(50vw + 12rem)) rotate(720deg); } }
+/* hockey: the red goal lamp behind the net, beacon sweeping and the whole screen strobing */
+.callout[data-sport="hockey"] .callout-icon { display: grid; place-items: start center; }
+.callout[data-sport="hockey"] .callout-icon svg { position: relative; top: 4rem; width: 16rem; height: 16rem; filter: drop-shadow(0 0 3rem rgba(255, 0, 0, 0.9)); animation: lamp-bob 0.45s steps(2, end) infinite; }
+@keyframes lamp-bob { 0%, 100% { filter: drop-shadow(0 0 4rem rgba(255, 0, 0, 1)); } 50% { filter: drop-shadow(0 0 1rem rgba(255, 0, 0, 0.4)); } }
+.callout[data-sport="hockey"] .callout-icon::before {
+  content: ""; position: absolute; top: calc(4rem + 8rem - 60vh); left: calc(50% - 60vh); width: 120vh; height: 120vh; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 38%, rgba(255, 0, 0, 0.55) 50%, transparent 62%, transparent 88%, rgba(255, 0, 0, 0.55) 100%);
+  animation: beacon 0.9s linear infinite; mix-blend-mode: screen;
+}
+@keyframes beacon { to { transform: rotate(360deg); } }
 /* baseball: arcs out of the park */
 .callout[data-sport="baseball"] .callout-icon svg { bottom: 8%; left: 10%; top: auto; width: 8rem; height: 8rem; animation: hr 2.4s ease-out forwards; }
 @keyframes hr {
