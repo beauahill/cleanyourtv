@@ -125,7 +125,8 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .rail { display: flex; flex-direction: column; gap: 1.4rem; min-height: 0; overflow: hidden; }
 .rail h2 { font-size: 1.3rem; letter-spacing: 0.25em; color: var(--dim); font-weight: 600; margin: 0 0 0.8rem; text-transform: uppercase; }
 .rail-section { background: var(--panel); border-radius: var(--radius); padding: 1.2rem 1.4rem; border: 0.12rem solid var(--line); }
-.rail-news { flex: 1; min-height: 0; overflow: hidden; }
+.rail-news { flex: 1; min-height: 9rem; overflow: hidden; }
+.rail-section { flex-shrink: 0; }
 .myteams { display: grid; gap: 0.7rem; }
 .myteam { display: grid; grid-template-columns: 3rem 1fr; gap: 0.9rem; align-items: center; }
 .myteam .logo { width: 3rem; height: 3rem; object-fit: contain; }
@@ -134,10 +135,13 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .myteam .line2 { font-size: 1.25rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .myteam .line2 .live { color: var(--live-text); font-weight: 600; }
 .fantasy { display: grid; gap: 0.5rem; }
-.fantasy .frow { display: flex; justify-content: space-between; gap: 1rem; font-size: 1.45rem; }
-.fantasy .frow .lbl { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fantasy .frow .val { color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; }
-.fantasy .frow .sub { color: var(--dim); font-size: 1.15rem; }
+.fantasy .frow { display: grid; grid-template-columns: 1fr auto; column-gap: 1rem; font-size: 1.45rem; align-items: baseline; }
+.fantasy .frow .lbl { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.fantasy .frow .val { color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fantasy .frow .sub { color: var(--dim); font-size: 1.15rem; grid-column: 1 / -1; margin-top: -0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fantasy .frow.strong .lbl { font-weight: 600; }
+.fantasy .frow + .frow { margin-top: 0.2rem; }
+.fantasy .fline { font-size: 1.25rem; color: var(--muted); margin-top: 0.4rem; }
 .rail-news { display: flex; flex-direction: column; }
 .news { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.7rem; align-content: start; overflow: hidden; flex: 1; min-height: 0;
   -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent); mask-image: linear-gradient(to bottom, #000 80%, transparent); }

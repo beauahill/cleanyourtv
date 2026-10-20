@@ -344,8 +344,8 @@ def normalise_event(ev, league_cfg, favorites, tz):
     period = status.get("period") or 0
     start = ev.get("date") or comp.get("date")
     start_local = _to_local(start, tz)
-    fav_keys = {(f.get("league"), (f.get("team") or "").lower()) for f in favorites}
-    is_fav = any((league_cfg["key"], (t.get("abbr") or "").lower()) in fav_keys for t in (home, away))
+    fav_keys = {(f.get("league"), str(f.get("team") or "").lower()) for f in favorites}
+    is_fav = any((league_cfg["key"], str(t.get(k) or "").lower()) in fav_keys for t in (home, away) for k in ("abbr", "id"))
 
     detail = stype.get("shortDetail") or stype.get("detail") or ""
     if state == "pre":

@@ -117,14 +117,14 @@ def summarise(data, my_name):
     rec = (mine.get("record") or {}).get("overall") or {}
     record = f"{rec.get('wins', 0)}-{rec.get('losses', 0)}" + (f"-{rec['ties']}" if rec.get("ties") else "")
 
-    rows = []
+    rows = [{"label": team_name(mine), "value": f"{my_pts:.1f}", "sub": f"proj {my_proj:.0f} · {record}", "strong": True}]
     if opp:
         opp_pts, opp_proj = points(opp, opp_side)
-        rows.append({"label": f"{team_name(mine)} vs {team_name(opp)}", "value": f"{my_pts:.1f} – {opp_pts:.1f}",
-                     "sub": f"proj {my_proj:.0f} – {opp_proj:.0f}"})
+        orec = (opp.get("record") or {}).get("overall") or {}
+        rows.append({"label": team_name(opp), "value": f"{opp_pts:.1f}",
+                     "sub": f"proj {opp_proj:.0f} · {orec.get('wins', 0)}-{orec.get('losses', 0)}"})
     else:
-        rows.append({"label": team_name(mine), "value": f"{my_pts:.1f}", "sub": f"proj {my_proj:.0f} · bye week?"})
-    rows.append({"label": "Record", "value": record, "sub": f"Week {week}"})
+        rows.append({"label": "No matchup this week", "value": "", "sub": ""})
 
     scored = []
     flags = []

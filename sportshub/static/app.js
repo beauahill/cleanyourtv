@@ -194,7 +194,7 @@
     favs.forEach((f, i) => {
       if (f.league !== g.league) return;
       const t = (f.team || "").toLowerCase();
-      if (t === (g.home.abbr || "").toLowerCase() || t === (g.away.abbr || "").toLowerCase()) best = Math.min(best, i);
+      if ([g.home.abbr, g.away.abbr, g.home.id, g.away.id].some((x) => String(x || "").toLowerCase() === t)) best = Math.min(best, i);
     });
     return best;
   }
@@ -409,15 +409,14 @@
     $("#fantasy-title").textContent = f.title || (state.config.fantasy && state.config.fantasy.title) || "Fantasy";
     const root = $("#fantasy");
     root.innerHTML = "";
-    (f.rows || []).slice(0, 6).forEach((r) => {
-      const row = el("div", "frow");
-      const l = el("span", "lbl", r.label || "");
-      if (r.sub) { l.appendChild(el("span", "sub", "  " + r.sub)); }
-      row.appendChild(l);
+    (f.rows || []).slice(0, f.maxRows || 4).forEach((r) => {
+      const row = el("div", "frow" + (r.strong ? " strong" : ""));
+      row.appendChild(el("span", "lbl", r.label || ""));
       row.appendChild(el("span", "val", r.value != null ? String(r.value) : ""));
+      if (r.sub) row.appendChild(el("span", "sub", r.sub));
       root.appendChild(row);
     });
-    (f.lines || []).slice(0, 6).forEach((t) => root.appendChild(el("div", "frow", t)));
+    (f.lines || []).slice(0, 2).forEach((t) => root.appendChild(el("div", "fline", t)));
   }
 
   // ------------------------------------------------------------------ render: dock
@@ -1026,8 +1025,8 @@
 
   function isFavoriteTeam(g, side) {
     const favs = (state.config && state.config.favorites) || [];
-    const abbr = (g[side].abbr || "").toLowerCase();
-    return favs.some((f) => f.league === g.league && (f.team || "").toLowerCase() === abbr);
+    const abbr = (g[side].abbr || "").toLowerCase(), id = String(g[side].id || "").toLowerCase();
+    return favs.some((f) => f.league === g.league && [abbr, id].includes((f.team || "").toLowerCase()));
   }
 
   const ICONS = {
@@ -1071,8 +1070,8 @@
 
   function playScoreSound(g, side) {
     const favs = (state.config && state.config.favorites) || [];
-    const abbr = (g[side].abbr || "").toLowerCase();
-    const fav = favs.find((f) => f.league === g.league && (f.team || "").toLowerCase() === abbr) || {};
+    const abbr = (g[side].abbr || "").toLowerCase(), id = String(g[side].id || "").toLowerCase();
+    const fav = favs.find((f) => f.league === g.league && [abbr, id].includes((f.team || "").toLowerCase())) || {};
     const src = fav.sound || gmCfg().sound;
     if (!src) return;
     try { const a = new Audio(src); a.volume = 1; a.play().catch(() => {}); } catch (e) { /* no audio */ }
