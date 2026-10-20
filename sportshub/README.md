@@ -160,7 +160,26 @@ To see a callout without waiting for a game, open the browser console on the pag
 
 ## Configuration
 
-`config.json`, restart the server after editing.
+`config.json` holds the defaults that ship with the repo. Put **your** settings in
+`config.local.json` next to it: same shape, only the keys you want to change, and it is git-ignored
+so `git pull` never conflicts with it. Lists such as `favorites`, `leagues` and `apps` replace the
+default list whole; nested objects such as `gameMode` merge key by key. Restart the server after
+editing either file. A minimal local file:
+
+```json
+{
+  "title": "Man Cave",
+  "theme": {"preset": "wyo-bills"},
+  "favorites": [
+    {"league": "cfb", "team": "wyo"},
+    {"league": "nfl", "team": "buf"},
+    {"league": "nhl", "team": "col"},
+    {"league": "nhl", "team": "buf"}
+  ]
+}
+```
+
+The full set of keys, with their defaults:
 
 ```jsonc
 {

@@ -79,18 +79,44 @@ DEFAULT_CONFIG = {
 # Config
 # ----------------------------------------------------------------------------------------------
 
+def _read_json(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except json.JSONDecodeError as e:
+        with open(path, encoding="utf-8") as f:
+            head = f.read(200)
+        hint = ""
+        if head.lstrip().startswith("<<<<<<<") or "=======" in head or ">>>>>>>" in head:
+            hint = " (looks like leftover git conflict markers from a stash pop or merge)"
+        if not head.strip():
+            hint = " (the file is empty)"
+        sys.exit(f"{path}: invalid JSON at line {e.lineno} column {e.colno}: {e.msg}{hint}\n"
+                 f"check it with: python3 -m json.tool {path}")
+
+
+def _merge(base, extra):
+    for k, v in extra.items():
+        if isinstance(v, dict) and isinstance(base.get(k), dict):
+            _merge(base[k], v)
+        else:
+            base[k] = v
+    return base
+
+
 def load_config(path):
+    """config.json, then config.local.json next to it layered on top (lists such as "favorites"
+    and "leagues" are replaced whole, dicts are merged). Keep personal settings in the local file:
+    it is git-ignored, so `git pull` never conflicts with it."""
     cfg = json.loads(json.dumps(DEFAULT_CONFIG))
     if path and os.path.exists(path):
-        with open(path, encoding="utf-8") as f:
-            user = json.load(f)
-        for k, v in user.items():
-            if isinstance(v, dict) and isinstance(cfg.get(k), dict):
-                cfg[k].update(v)
-            else:
-                cfg[k] = v
+        _merge(cfg, _read_json(path))
     else:
         log.warning("config %s not found, using defaults", path)
+    local = os.path.join(os.path.dirname(os.path.abspath(path)), "config.local.json") if path else None
+    if local and os.path.exists(local):
+        _merge(cfg, _read_json(local))
+        log.info("applied %s", local)
     cfg["_leagues_by_key"] = {lg["key"]: lg for lg in cfg["leagues"]}
     return cfg
 
