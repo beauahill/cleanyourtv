@@ -65,8 +65,12 @@ DEFAULT_CONFIG = {
     "apps": [],
     "refresh": {"liveSeconds": 30, "idleSeconds": 300, "cacheSeconds": 20, "teamCacheSeconds": 900,
                 "newsCacheSeconds": 600},
+    "idleAfterSeconds": 30,
+    "idleScrollSeconds": 7,
     "idleRotateSeconds": 20,
     "showOdds": True,
+    "gameMode": {"auto": True, "idleSeconds": 60, "rotateSeconds": 0, "refreshSeconds": 15,
+                 "exitAfterFinalSeconds": 120, "callouts": True, "sound": ""},
     "fantasy": {"enabled": False, "command": "", "url": "", "cacheSeconds": 120, "timeoutSeconds": 30},
 }
 
@@ -202,6 +206,14 @@ def _rank(competitor):
     return None
 
 
+def _score(competitor):
+    """Scoreboard gives "17"; the team endpoint's nextEvent gives {"value": 17, "displayValue": "17"}."""
+    sc = competitor.get("score")
+    if isinstance(sc, dict):
+        return sc.get("displayValue") or (str(int(sc["value"])) if sc.get("value") is not None else None)
+    return sc
+
+
 def _norm_team(competitor):
     t = competitor.get("team", {}) or {}
     return {
@@ -213,7 +225,7 @@ def _norm_team(competitor):
         "logo": t.get("logo") or ((t.get("logos") or [{}])[0].get("href")),
         "color": t.get("color"),
         "altColor": t.get("alternateColor"),
-        "score": competitor.get("score"),
+        "score": _score(competitor),
         "record": _record(competitor),
         "rank": _rank(competitor),
         "winner": bool(competitor.get("winner")),
@@ -249,6 +261,9 @@ def _situation(comp, sport, home_id, away_id):
     if sport == "football":
         out["text"] = s.get("downDistanceText") or s.get("shortDownDistanceText")
         out["redZone"] = bool(s.get("isRedZone"))
+        out["possessionText"] = s.get("possessionText")
+        if s.get("homeTimeouts") is not None:
+            out["timeouts"] = {"home": s.get("homeTimeouts"), "away": s.get("awayTimeouts")}
     elif sport == "baseball":
         bases = "".join("●" if s.get(k) else "○" for k in ("onFirst", "onSecond", "onThird"))
         parts = []

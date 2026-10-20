@@ -39,8 +39,20 @@
     "teamCacheSeconds": 900,
     "newsCacheSeconds": 600
   },
+  "idleAfterSeconds": 30,
+  "idleScrollSeconds": 7,
   "idleRotateSeconds": 20,
   "showOdds": true,
+
+  "gameMode": {
+    "auto": true,
+    "idleSeconds": 60,
+    "rotateSeconds": 0,
+    "refreshSeconds": 15,
+    "exitAfterFinalSeconds": 120,
+    "callouts": true,
+    "sound": ""
+  },
 
   "fantasy": {
     "enabled": false,

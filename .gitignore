@@ -14,3 +14,4 @@ sportshub/config.local.json
 # your own TV's dumps (serial, android_id, device names) stay local
 backup/
 .DS_Store
+sportshub/static/sounds/

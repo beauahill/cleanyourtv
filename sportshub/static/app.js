@@ -25,6 +25,8 @@
     overlayGame: null,
     lastKeyAt: Date.now(),
     timers: {},
+    gm: { active: false, league: null, id: null, enteredAt: 0, finalAt: 0, details: null, lastRotate: 0 },
+    scores: {},            // "league:id" -> {away, home} for score-change detection
   };
 
   // ------------------------------------------------------------------ themes
@@ -44,9 +46,11 @@
       logos: [LOGO("nfl", "buf")],
     },
     "wyo-bills": {
+      // Wyoming brown and gold carry the surfaces; Bills blue and red are the highlights.
       accent: "#ffc425", accent2: "#00338d", accent2Fg: "#ffffff", live: "#c60c30", liveText: "#ff6b7f",
-      bg: "#090a12", panel: "#12131f", panel2: "#1a1c2e", line: "#262a40", title: "#ffc425",
-      gradient: "radial-gradient(ellipse at 0% 0%, rgba(255, 196, 37, 0.10), transparent 45%), radial-gradient(ellipse at 100% 100%, rgba(0, 51, 141, 0.35), transparent 50%)",
+      bg: "#0e0b09", panel: "#1a1411", panel2: "#241b16", line: "#3a2c23", title: "#ffc425",
+      muted: "#a3978b", dim: "#6f6259",
+      gradient: "radial-gradient(ellipse at 0% 0%, rgba(255, 196, 37, 0.14), transparent 50%), radial-gradient(ellipse at 20% 100%, rgba(73, 47, 36, 0.55), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(0, 51, 141, 0.30), transparent 45%)",
       logos: [LOGO("ncaa", "2751"), LOGO("nfl", "buf")],
     },
   };
@@ -99,8 +103,10 @@
       setStale(true);
       if (!state.today) state.today = { leagues: [], liveCount: 0 };
     }
+    detectScoreChanges();
     renderTabs();
     renderGames();
+    if (state.gm.active) renderGameMode();
     scheduleToday();
   }
 
@@ -124,7 +130,8 @@
     clearTimeout(state.timers.today);
     const r = (state.config && state.config.refresh) || {};
     const live = state.today && state.today.liveCount > 0;
-    const secs = live ? (r.liveSeconds || 30) : (r.idleSeconds || 300);
+    let secs = live ? (r.liveSeconds || 30) : (r.idleSeconds || 300);
+    if (state.gm.active) secs = Math.min(secs, gmCfg().refreshSeconds || 15);
     state.timers.today = setTimeout(loadToday, secs * 1000);
   }
 
@@ -179,9 +186,21 @@
   }
 
   const ORDER = { in: 0, pre: 1, post: 2 };
+  // The order of "favorites" in config.json is a priority list: Wyoming before the Bills before the
+  // Avs, etc. favRank() is the best (lowest) index of either team, 999 for a non-favourite.
+  function favRank(g) {
+    const favs = (state.config && state.config.favorites) || [];
+    let best = 999;
+    favs.forEach((f, i) => {
+      if (f.league !== g.league) return;
+      const t = (f.team || "").toLowerCase();
+      if (t === (g.home.abbr || "").toLowerCase() || t === (g.away.abbr || "").toLowerCase()) best = Math.min(best, i);
+    });
+    return best;
+  }
   function sortGames(games) {
     return games.slice().sort((a, b) =>
-      (a.favorite ? 0 : 1) - (b.favorite ? 0 : 1) ||
+      favRank(a) - favRank(b) ||
       (ORDER[a.state] - ORDER[b.state]) ||
       (a.start || "").localeCompare(b.start || ""));
   }
@@ -672,7 +691,8 @@
     if (e.dataset.focusable === "tab") selectTab(e.dataset.tab);
     else if (e.dataset.focusable === "card") {
       const g = allGames().find((x) => x.league === e.dataset.league && x.id === e.dataset.id);
-      if (g) openGame(g);
+      if (g && g.state === "in") enterGameMode(g);
+      else if (g) openGame(g);
     } else if (e.dataset.focusable === "app") {
       const apps = state.config.apps || [];
       const a = apps[parseInt(e.id.replace("app-", ""), 10)];
@@ -681,9 +701,19 @@
   }
 
   function onKey(ev) {
+    const idleMs = Date.now() - state.lastKeyAt;
     state.lastKeyAt = Date.now();
     const k = ev.key, code = ev.keyCode;
+    if (idleMs > 10000 && !state.overlayOpen && !state.gm.active && /^Arrow/.test(k) && recoverFocusAfterIdle()) { ev.preventDefault(); return; }
     const isBack = k === "Escape" || k === "Backspace" || k === "GoBack" || k === "BrowserBack" || code === 27 || code === 461 || code === 10009;
+    if (state.gm.active) {
+      if (isBack || k === "Enter" || code === 13) exitGameMode();
+      else if (k === "ArrowLeft") cycleGameMode(-1);
+      else if (k === "ArrowRight") cycleGameMode(1);
+      else if (k === "ArrowDown") { const g = gmGame(); exitGameMode(); if (g) openGame(g); }
+      ev.preventDefault();
+      return;
+    }
     if (state.overlayOpen) {
       const card = $("#overlay-card");
       if (isBack || k === "Enter" || code === 13) { closeOverlay(); ev.preventDefault(); return; }
@@ -706,25 +736,377 @@
 
   // Exposed for the Android kiosk wrapper: it calls these on hardware Back / Home / resume.
   window.SportsHubPage = {
-    back() { if (state.overlayOpen) { closeOverlay(); return true; } if (state.tab !== "all") { selectTab("all"); return true; } return false; },
-    home() { closeOverlay(); selectTab("all"); },
+    back() { if (state.gm.active) { exitGameMode(); return true; } if (state.overlayOpen) { closeOverlay(); return true; } if (state.tab !== "all") { selectTab("all"); return true; } return false; },
+    home() { exitGameMode(); closeOverlay(); selectTab("all"); },
+    gameMode(league, id) { const g = allGames().find((x) => x.league === league && x.id === id); if (g) enterGameMode(g); },
+    // for testing callouts from the browser console: SportsHubPage.simulateScore("nfl", "401901001", "away", 7)
+    simulateScore(league, id, side, delta) { const g = allGames().find((x) => x.league === league && x.id === id); if (!g) return; g[side].score = String((parseInt(g[side].score, 10) || 0) + delta); detectScoreChanges(); if (state.gm.active) renderGameMode(); else renderGames(); },
     refresh() { loadToday(); loadMyTeams(); loadNews(); loadFantasy(); },
   };
 
   // ------------------------------------------------------------------ idle rotation
+  // While the remote is idle the hub pages the score grid upward one row-band at a time, and
+  // moves to the next league tab once the bottom is reached. Nothing needs pressing.
+  let lastIdleAction = 0;
   function idleTick() {
-    const secs = (state.config && state.config.idleRotateSeconds) || 0;
-    if (!secs || state.overlayOpen) return;
-    if (Date.now() - state.lastKeyAt < 90 * 1000) return;
+    const cfg = state.config || {};
+    const rotate = cfg.idleRotateSeconds || 0;
+    if (!rotate || state.overlayOpen || state.gm.active) return;
+    const now = Date.now();
+    if (now - state.lastKeyAt < (cfg.idleAfterSeconds || 30) * 1000) { lastIdleAction = now; return; }
+    const grid = $("#games");
+    const canScroll = grid.scrollTop + grid.clientHeight < grid.scrollHeight - 4;
+    const dwell = canScroll ? (cfg.idleScrollSeconds || 7) : rotate;
+    if (now - lastIdleAction < dwell * 1000) return;
+    lastIdleAction = now;
+    if (canScroll) {
+      const card = grid.querySelector(".card");
+      const rowH = card ? card.getBoundingClientRect().height + 20 : grid.clientHeight / 2;
+      const rows = Math.max(1, Math.floor(grid.clientHeight / rowH));
+      grid.scrollTo({ top: grid.scrollTop + rows * rowH, behavior: "smooth" });
+      return;
+    }
     const tabs = Array.from($("#tabs").children);
-    if (tabs.length < 2) return;
+    if (tabs.length < 2) { grid.scrollTo({ top: 0, behavior: "smooth" }); return; }
     const i = tabs.findIndex((t) => t.dataset.tab === state.tab);
     const next = tabs[(i + 1) % tabs.length];
     state.tab = next.dataset.tab;
     renderTabs();
     renderGames();
-    $("#games").scrollTop = 0;
+    grid.scrollTop = 0;
     focusEl(next, true);
+  }
+
+  // First key press after an idle spell: if the focused card was scrolled out of view, land on the
+  // first visible card instead of jumping somewhere off-screen.
+  function recoverFocusAfterIdle() {
+    const f = state.focus;
+    if (!f || f.dataset.focusable !== "card") return false;
+    const grid = $("#games");
+    const r = f.getBoundingClientRect(), c = grid.getBoundingClientRect();
+    if (r.bottom > c.top && r.top < c.bottom) return false;
+    const visible = Array.from(grid.querySelectorAll(".card")).find((e) => { const b = e.getBoundingClientRect(); return b.top >= c.top - 2 && b.bottom <= c.bottom + 2; });
+    if (!visible) return false;
+    focusEl(visible, true);
+    return true;
+  }
+
+
+  // ------------------------------------------------------------------ game mode (the board)
+  function gmCfg() { return (state.config && state.config.gameMode) || {}; }
+
+  function liveFavorites() {
+    return sortGames(allGames().filter((g) => g.state === "in" && g.favorite));
+  }
+
+  function gmGame() {
+    return allGames().find((g) => g.league === state.gm.league && g.id === state.gm.id) || null;
+  }
+
+  function enterGameMode(g) {
+    const first = !state.gm.active;
+    state.gm.active = true;
+    state.gm.league = g.league;
+    state.gm.id = g.id;
+    state.gm.enteredAt = Date.now();
+    state.gm.lastRotate = Date.now();
+    state.gm.finalAt = 0;
+    state.gm.details = null;
+    closeOverlay();
+    $("#gamemode").classList.remove("hidden");
+    renderGameMode();
+    loadGameDetails();
+    if (first) loadToday(); // tighten the refresh cadence right away
+  }
+
+  function exitGameMode() {
+    if (!state.gm.active) return;
+    state.gm.active = false;
+    $("#gamemode").classList.add("hidden");
+    scheduleToday();
+  }
+
+  function cycleGameMode(dir) {
+    let pool = liveFavorites();
+    if (pool.length < 2) pool = sortGames(allGames().filter((g) => g.state === "in"));
+    if (pool.length < 2) return;
+    const i = pool.findIndex((g) => g.league === state.gm.league && g.id === state.gm.id);
+    const next = pool[(i + dir + pool.length) % pool.length];
+    enterGameMode(next);
+  }
+
+  async function loadGameDetails() {
+    const g = gmGame();
+    if (!g) return;
+    try {
+      const d = await getJSON("/api/game?league=" + encodeURIComponent(g.league) + "&id=" + encodeURIComponent(g.id));
+      if (state.gm.active && state.gm.id === g.id) { state.gm.details = d; renderGameMode(); }
+    } catch (e) { /* board works without details */ }
+  }
+
+  function teamRgb(t) { return hexToRgb("#" + (t.color || "334455")) || "51, 68, 85"; }
+
+  function renderGameMode() {
+    const g = gmGame();
+    const root = $("#gamemode");
+    if (!g) { exitGameMode(); return; }
+    root.style.setProperty("--away-rgb", teamRgb(g.away));
+    root.style.setProperty("--home-rgb", teamRgb(g.home));
+    root.innerHTML = "";
+
+    const top = el("div", "gm-top");
+    top.appendChild(el("div", "gm-league", g.leagueLabel + (g.venue ? "  ·  " + g.venue : "")));
+    top.appendChild(el("div", "gm-clock-wall", fmtTime(new Date())));
+    top.appendChild(el("div", "gm-right", [g.broadcast, g.city].filter(Boolean).join("  ·  ")));
+    root.appendChild(top);
+
+    const main = el("div", "gm-main");
+    main.appendChild(renderGmTeam(g, g.away, "away"));
+    main.appendChild(renderGmCenter(g));
+    main.appendChild(renderGmTeam(g, g.home, "home"));
+    root.appendChild(main);
+
+    root.appendChild(renderGmBottom(g, state.gm.details));
+    root.appendChild(el("div", "gm-hint", "◀ ▶ other games · ▼ details · BACK hub"));
+
+    if (g.state === "post" && !state.gm.finalAt) state.gm.finalAt = Date.now();
+  }
+
+  function renderGmTeam(g, t, side) {
+    const box = el("div", "gm-team " + side);
+    const poss = g.state === "in" && g.situation && g.situation.possession === side;
+    if (poss) box.classList.add("poss");
+    if (poss && g.situation.redZone) box.classList.add("redzone");
+    if (g.state === "post" && !t.winner && g.home.score !== g.away.score) box.classList.add("loser");
+    box.appendChild(logo(t));
+    const name = el("div", "gm-name");
+    if (t.rank) name.appendChild(el("span", "rank", "#" + t.rank));
+    name.appendChild(el("span", null, t.short || t.name));
+    box.appendChild(name);
+    box.appendChild(el("div", "gm-rec", [t.record, side === "home" ? "HOME" : "AWAY"].filter(Boolean).join("  ·  ")));
+    const score = el("div", "gm-score", g.state === "pre" ? "–" : (t.score != null ? String(t.score) : "0"));
+    score.id = "gm-score-" + side;
+    box.appendChild(score);
+    if (g.sport === "football" && g.situation && g.situation.timeouts && g.state === "in") {
+      const to = el("div", "gm-timeouts");
+      const n = g.situation.timeouts[side];
+      for (let i = 0; i < 3; i++) to.appendChild(el("i", i < (n || 0) ? "on" : ""));
+      box.appendChild(to);
+    }
+    return box;
+  }
+
+  function renderGmCenter(g) {
+    const c = el("div", "gm-center");
+    if (g.state === "in") {
+      c.appendChild(el("div", "gm-state live", "● Live"));
+      const isHalf = /half|end/i.test(g.detail || "");
+      c.appendChild(el("div", "gm-clock", g.sport === "baseball" ? g.detail : (isHalf ? g.detail : (g.clock || ""))));
+      if (g.sport !== "baseball" && !isHalf) c.appendChild(el("div", "gm-period", g.periodLabel || ""));
+      if (g.situation) {
+        const sit = el("div", "gm-situation" + (g.situation.redZone ? " redzone" : ""));
+        if (g.sport === "baseball" && g.situation.bases_detail) {
+          const b = el("span", "bases");
+          const d = g.situation.bases_detail;
+          [["second", d.second], ["first", d.first], ["third", d.third], ["empty", false]].forEach(([k, on]) => b.appendChild(el("i", k === "empty" ? "empty" : (on ? "on" : ""))));
+          sit.appendChild(b);
+        }
+        sit.appendChild(el("span", null, g.situation.text || ""));
+        if (g.situation.text || g.situation.bases_detail) c.appendChild(sit);
+        const last = (state.gm.details && state.gm.details.lastPlay) || g.situation.lastPlay;
+        if (last) c.appendChild(el("div", "gm-lastplay", last));
+      }
+    } else if (g.state === "pre") {
+      c.appendChild(el("div", "gm-state", "Upcoming"));
+      c.appendChild(el("div", "gm-clock", fmtTime(new Date(g.startLocal || g.start))));
+      c.appendChild(el("div", "gm-period", whenLabel(g.startLocal)));
+      if (g.odds && (g.odds.details || g.odds.overUnder)) c.appendChild(el("div", "gm-odds", [g.odds.details, g.odds.overUnder ? "O/U " + g.odds.overUnder : null].filter(Boolean).join("  ·  ")));
+    } else {
+      c.appendChild(el("div", "gm-state", g.detail || "Final"));
+      const w = g.home.winner ? g.home : g.away.winner ? g.away : null;
+      c.appendChild(el("div", "gm-clock", w ? (w.short || w.abbr) : "Tie"));
+      c.appendChild(el("div", "gm-period", w ? "win" : ""));
+      if (g.headline) c.appendChild(el("div", "gm-lastplay", g.headline));
+    }
+    return c;
+  }
+
+  function renderGmBottom(g, d) {
+    const b = el("div", "gm-bottom");
+    const ls = el("div");
+    ls.appendChild(el("h3", null, "Linescore"));
+    const a = g.away.linescores || [], h = g.home.linescores || [];
+    const n = Math.max(a.length, h.length, g.sport === "baseball" ? 9 : g.sport === "hockey" ? 3 : g.sport === "football" ? 4 : 4);
+    const tbl = el("table", "linescore");
+    const tr0 = el("tr"); tr0.appendChild(el("th", null, ""));
+    for (let i = 0; i < n; i++) tr0.appendChild(el("th", null, String(i + 1)));
+    tr0.appendChild(el("th", null, "T")); tbl.appendChild(tr0);
+    [[g.away, a], [g.home, h]].forEach(([t, arr]) => {
+      const tr = el("tr"); tr.appendChild(el("td", null, t.abbr));
+      for (let i = 0; i < n; i++) tr.appendChild(el("td", null, arr[i] != null ? String(arr[i]) : "·"));
+      tr.appendChild(el("td", "tot", g.state === "pre" ? "" : String(t.score != null ? t.score : 0))); tbl.appendChild(tr);
+    });
+    ls.appendChild(tbl);
+    b.appendChild(ls);
+
+    const plays = el("div");
+    plays.appendChild(el("h3", null, "Scoring"));
+    const list = el("div", "plays");
+    const sp = (d && d.scoringPlays) || [];
+    if (!sp.length) list.appendChild(el("div", "ov-error", g.state === "pre" ? "Not started" : "No scoring yet"));
+    sp.slice(-4).reverse().forEach((p) => {
+      const row = el("div", "play");
+      row.appendChild(el("span", "p", (p.period ? ordinal(p.period) : "") + (p.clock ? " " + p.clock : "")));
+      row.appendChild(el("span", "t", p.team || ""));
+      row.appendChild(el("span", null, p.text || ""));
+      row.appendChild(el("span", "s", (p.away != null && p.home != null) ? p.away + "-" + p.home : ""));
+      list.appendChild(row);
+    });
+    plays.appendChild(list);
+    b.appendChild(plays);
+
+    const lead = el("div", "gm-leaders");
+    lead.appendChild(el("h3", null, "Leaders"));
+    const L = ((d && d.leaders && d.leaders.length) ? d.leaders : (g.leaders || [])).slice(0, 4);
+    if (!L.length) lead.appendChild(el("div", "ov-error", "–"));
+    L.forEach((x) => {
+      const row = el("div", "leader");
+      row.appendChild(el("span", "cat", (x.category || "").toUpperCase()));
+      const who = el("span");
+      who.appendChild(el("span", "who", (x.team ? x.team + " " : "") + (x.name || "")));
+      who.appendChild(el("span", "val", "  " + (x.value || "")));
+      row.appendChild(who);
+      lead.appendChild(row);
+    });
+    b.appendChild(lead);
+    return b;
+  }
+
+  // ------------------------------------------------------------------ score changes + callouts
+  function detectScoreChanges() {
+    const first = !Object.keys(state.scores).length;
+    allGames().forEach((g) => {
+      const key = g.league + ":" + g.id;
+      const now = { away: parseInt(g.away.score, 10) || 0, home: parseInt(g.home.score, 10) || 0 };
+      const prev = state.scores[key];
+      state.scores[key] = now;
+      if (first || !prev || g.state !== "in") return;
+      ["away", "home"].forEach((side) => {
+        const delta = now[side] - prev[side];
+        if (delta > 0) onScore(g, side, delta);
+      });
+    });
+  }
+
+  function scoreWord(g, delta) {
+    switch (g.sport) {
+      case "football": return delta >= 6 ? "Touchdown" : delta === 3 ? "Field goal" : delta === 2 ? "Safety" : null;
+      case "hockey": return "Goal";
+      case "soccer": return "Goal";
+      case "baseball": return delta >= 4 ? "Grand slam" : delta === 1 ? "Run scores" : delta + " runs score";
+      default: return null; // basketball scores too often to shout about
+    }
+  }
+
+  function onScore(g, side, delta) {
+    const t = g[side];
+    const inBoard = state.gm.active && state.gm.id === g.id;
+    if (inBoard) {
+      const s = $("#gm-score-" + side);
+      if (s) { s.classList.remove("bump"); void s.offsetWidth; s.classList.add("bump"); }
+      loadGameDetails();
+    }
+    const word = scoreWord(g, delta);
+    if (!word || gmCfg().callouts === false) return;
+    if (!g.favorite && !inBoard) return;
+    const favSide = isFavoriteTeam(g, side);
+    showCallout(word + " " + (t.short || t.abbr), g, side, favSide);
+    if (favSide) playScoreSound(g, side);
+  }
+
+  function isFavoriteTeam(g, side) {
+    const favs = (state.config && state.config.favorites) || [];
+    const abbr = (g[side].abbr || "").toLowerCase();
+    return favs.some((f) => f.league === g.league && (f.team || "").toLowerCase() === abbr);
+  }
+
+  const ICONS = {
+    football: '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="46" ry="27" fill="#7a3b12" stroke="#f2e6d8" stroke-width="3"/><path d="M30 50h40M38 43v14M46 43v14M54 43v14M62 43v14" stroke="#f2e6d8" stroke-width="3" stroke-linecap="round"/></svg>',
+    hockey: '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="44" ry="18" fill="#111" stroke="#555" stroke-width="3"/><ellipse cx="50" cy="42" rx="44" ry="18" fill="#222" stroke="#666" stroke-width="3"/></svg>',
+    baseball: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#f6f1e7" stroke="#ccc" stroke-width="2"/><path d="M22 14q28 36 0 72M78 14q-28 36 0 72" fill="none" stroke="#c0392b" stroke-width="4"/><path d="M26 22l8 4M24 32l8 3M24 44l8 1M24 56l8-1M24 68l8-3M26 78l8-4M74 22l-8 4M76 32l-8 3M76 44l-8 1M76 56l-8-1M76 68l-8-3M74 78l-8-4" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round"/></svg>',
+    soccer: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#fafafa" stroke="#ccc" stroke-width="2"/><polygon points="50,28 68,41 61,62 39,62 32,41" fill="#111"/><path d="M50 28V10M68 41l17-6M61 62l11 14M39 62L28 76M32 41l-17-6" stroke="#111" stroke-width="5"/></svg>',
+    basketball: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#e8742c" stroke="#8a3f10" stroke-width="2"/><path d="M50 6v88M6 50h88M18 18q32 32 64 64M82 18q-32 32-64 64" fill="none" stroke="#3a1a08" stroke-width="3"/></svg>',
+  };
+
+  let calloutTimer = null;
+  function showCallout(word, g, side, favSide) {
+    const c = $("#callout");
+    const t = g[side];
+    c.style.setProperty("--callout-rgb", teamRgb(t));
+    c.dataset.sport = g.sport;
+    c.querySelector(".callout-word").textContent = word;
+    c.querySelector(".callout-sub").textContent = g.shortName + "  ·  " + g.away.score + "–" + g.home.score + (g.detail ? "  ·  " + g.detail : "");
+    // restart the CSS animations by re-creating the animated nodes
+    const icon = c.querySelector(".callout-icon");
+    icon.innerHTML = ICONS[g.sport] || "";
+    const conf = c.querySelector(".callout-confetti");
+    conf.innerHTML = "";
+    const colors = ["#" + (t.color || "ffffff"), "#" + (t.altColor || "ffffff"), "#ffffff"];
+    const n = favSide ? 70 : 35;
+    for (let i = 0; i < n; i++) {
+      const p = el("i");
+      p.style.left = (Math.random() * 100) + "%";
+      p.style.background = colors[i % colors.length];
+      p.style.animationDelay = (Math.random() * 1.2) + "s";
+      p.style.animationDuration = (2.4 + Math.random() * 1.6) + "s";
+      p.style.transform = "rotate(" + (Math.random() * 360) + "deg)";
+      conf.appendChild(p);
+    }
+    c.classList.add("hidden");
+    void c.offsetWidth;
+    c.classList.remove("hidden");
+    clearTimeout(calloutTimer);
+    calloutTimer = setTimeout(() => c.classList.add("hidden"), favSide ? 9000 : 5000);
+  }
+
+  function playScoreSound(g, side) {
+    const favs = (state.config && state.config.favorites) || [];
+    const abbr = (g[side].abbr || "").toLowerCase();
+    const fav = favs.find((f) => f.league === g.league && (f.team || "").toLowerCase() === abbr) || {};
+    const src = fav.sound || gmCfg().sound;
+    if (!src) return;
+    try { const a = new Audio(src); a.volume = 1; a.play().catch(() => {}); } catch (e) { /* no audio */ }
+  }
+
+  // Auto takeover: a favourite is live and the remote has been idle -> show the board.
+  function gameModeTick() {
+    const cfg = gmCfg();
+    const idleMs = Date.now() - state.lastKeyAt;
+    if (state.gm.active) {
+      const g = gmGame();
+      if (!g) { exitGameMode(); return; }
+      if (g.state === "post" && state.gm.finalAt && Date.now() - state.gm.finalAt > (cfg.exitAfterFinalSeconds || 120) * 1000) {
+        const others = liveFavorites();
+        if (others.length) enterGameMode(others[0]); else exitGameMode();
+        return;
+      }
+      // Favourites are a priority list: while the board is showing a lower-priority game and a
+      // higher-priority favourite is live, switch to it (only when the remote is idle).
+      const top = liveFavorites()[0];
+      if (top && idleMs > 30000 && (top.id !== g.id || top.league !== g.league) && favRank(top) < favRank(g)) {
+        enterGameMode(top);
+        return;
+      }
+      if (cfg.rotateSeconds && idleMs > 30000 && Date.now() - state.gm.lastRotate > cfg.rotateSeconds * 1000) {
+        const pool = liveFavorites();
+        if (pool.length > 1) cycleGameMode(1);
+      }
+      return;
+    }
+    if (cfg.auto === false || state.overlayOpen) return;
+    if (idleMs < (cfg.idleSeconds || 60) * 1000) return;
+    const live = liveFavorites();
+    if (live.length) enterGameMode(live[0]);
   }
 
   // ------------------------------------------------------------------ misc
@@ -749,7 +1131,9 @@
     setInterval(loadMyTeams, 15 * 60 * 1000);
     setInterval(loadNews, 10 * 60 * 1000);
     setInterval(loadFantasy, 2 * 60 * 1000);
-    setInterval(idleTick, ((state.config && state.config.idleRotateSeconds) || 20) * 1000);
+    setInterval(idleTick, 1000);
+    setInterval(gameModeTick, 5000);
+    setInterval(() => { if (state.gm.active) loadGameDetails(); }, Math.max(15, gmCfg().refreshSeconds || 15) * 1000);
     document.addEventListener("visibilitychange", () => { if (!document.hidden) loadToday(); });
   }
 

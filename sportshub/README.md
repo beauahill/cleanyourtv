@@ -9,9 +9,9 @@ the dock to jump into ESPN, YouTube TV, FOX Sports, or whatever you subscribe to
   <img src="../docs/sportshub-home.png" alt="Sports Hub home screen" width="100%">
 </p>
 
-| Game detail (OK on a card) |
-|---|
-| ![Game overlay](../docs/sportshub-game.png) |
+| Game mode board (OK on a live card) | Game detail (OK on a finished or upcoming card) |
+|---|---|
+| ![Game board](../docs/sportshub-board.png) | ![Game overlay](../docs/sportshub-game.png) |
 
 Built for a TV viewed from across the room: dark background, large type, one focus ring, D-pad only.
 Everything is in `rem` with `1rem = 1/120 of the screen width`, so it looks the same at 1080p and 4K.
@@ -115,9 +115,48 @@ distance, red-zone alerts, runners on base, or the last play. Upcoming cards sho
 over/under; finals show the headline. The **My Teams** rail shows record, standing and the next or
 current game for each favourite.
 
-When nobody has touched the remote for 90 seconds the tabs rotate every `idleRotateSeconds`. Scores
-refresh every `liveSeconds` while any game is in progress, else every `idleSeconds`. If ESPN stops
-answering, the last good data stays on screen with an "OFFLINE · cached" pill; nothing goes blank.
+**Hands-off mode.** After `idleAfterSeconds` without a key press the hub drives itself: the score
+grid pages upward one row-band every `idleScrollSeconds`, and when it reaches the bottom the next
+league tab comes up (`idleRotateSeconds` is the dwell on a tab that fits on one screen). The first
+arrow press afterwards lands on a visible card. Scores refresh every `liveSeconds` while any game
+is in progress, else every `idleSeconds`. If ESPN stops answering, the last good data stays on
+screen with an "OFFLINE · cached" pill; nothing goes blank.
+
+## Game mode: the board
+
+OK on a live card opens a full-screen scoreboard in the two teams' colours: logos, scores at 15rem,
+clock and period, down and distance or runners on base, possession dot, timeouts, a red-zone pulse
+on the side with the ball, and along the bottom the linescore, the last four scoring plays and the
+stat leaders. ◀ ▶ flips between live games, ▼ opens the detail overlay, Back returns to the hub.
+
+It also takes over on its own. When a favourite is playing and the remote has been idle for
+`gameMode.idleSeconds`, the hub switches to the board for that game and stays until
+`exitAfterFinalSeconds` after the final, then returns to the hub (or to the next live favourite).
+**Favourites are a priority list**: the order in `config.json` decides which game the board shows
+when two favourites are live at once, and it switches up to a higher-priority game if one starts.
+Set `gameMode.rotateSeconds` above 0 to cycle through all live favourites instead.
+
+```json
+"favorites": [
+  {"league": "cfb", "team": "wyo"},
+  {"league": "nfl", "team": "buf", "sound": "sounds/bills.mp3"},
+  {"league": "nhl", "team": "col"},
+  {"league": "nhl", "team": "buf"}
+],
+"gameMode": {"auto": true, "idleSeconds": 60, "rotateSeconds": 0, "refreshSeconds": 15,
+             "exitAfterFinalSeconds": 120, "callouts": true, "sound": ""}
+```
+
+**Score callouts.** Whenever a favourite's game changes score (or any game while its board is up)
+the screen flashes a banner in the scoring team's colour: TOUCHDOWN / FIELD GOAL / SAFETY, GOAL,
+RUN SCORES / GRAND SLAM, with a sport-specific animation (a tumbling football, a goal lamp and a
+sliding puck, a ball arcing out of the park, a rolling soccer ball) and confetti in the team's
+colours. Basketball is left quiet because it scores every 20 seconds. If you want a horn, drop an
+audio file under `static/sounds/` (git-ignored) and name it per favourite with `sound`, or once for
+all of them with `gameMode.sound`. The kiosk app allows autoplay; a plain browser may not.
+
+To see a callout without waiting for a game, open the browser console on the page and run
+`SportsHubPage.simulateScore("nfl", "<game id>", "away", 7)`.
 
 ## Configuration
 
@@ -135,8 +174,9 @@ answering, the last good data stays on screen with an "OFFLINE · cached" pill; 
   "favorites": [{"league": "nfl", "team": "den"}],   // ESPN team abbreviation per league key
   "apps": [{"label": "ESPN", "package": "com.espn.score_center"}],
   "refresh": {"liveSeconds": 30, "idleSeconds": 300, "cacheSeconds": 20},
-  "idleRotateSeconds": 20,
+  "idleAfterSeconds": 30, "idleScrollSeconds": 7, "idleRotateSeconds": 20,
   "showOdds": true,
+  "gameMode": {"auto": true, "idleSeconds": 60},
   "fantasy": {"enabled": false}
 }
 ```
