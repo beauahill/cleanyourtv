@@ -176,14 +176,17 @@ so the script runs at most once per `cacheSeconds`.
 
 ## Running as a service
 
-**Linux (systemd):**
+**Linux (systemd), from the git checkout** so `git pull` picks up fixes:
 
 ```bash
-sudo cp -r sportshub /opt/sportshub
-sudo cp /opt/sportshub/sportshub.service /etc/systemd/system/
+sudo cp sportshub/sportshub.service /etc/systemd/system/
+sudo sed -i "s#/opt/sportshub#$PWD/sportshub#g; s/^DynamicUser=yes/User=$USER/; /^ProtectHome=yes/d" /etc/systemd/system/sportshub.service
 sudo systemctl daemon-reload && sudo systemctl enable --now sportshub
 journalctl -u sportshub -f
 ```
+
+Or copy it to `/opt/sportshub` and install the unit unchanged; it then runs as a locked-down dynamic
+user, which is fine unless the fantasy hook needs to read files in your home directory.
 
 **Windows mini PC:** create a Scheduled Task that runs at logon:
 `pythonw.exe C:\sportshub\server.py --config C:\sportshub\config.json`, or use NSSM to wrap it as a

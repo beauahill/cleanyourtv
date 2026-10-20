@@ -7,6 +7,12 @@
 #
 # Edit /opt/sportshub/config.json and restart (sudo systemctl restart sportshub) to change leagues,
 # teams or the dock. The page itself (static/) is served live, so edits there only need a refresh.
+#
+# To run straight from a git checkout in your home directory instead (so `git pull` picks up fixes):
+#   sudo sed -i "s#/opt/sportshub#$HOME/tv-vibehack/sportshub#g; s/^DynamicUser=yes/User=$USER/; /^ProtectHome=yes/d" \
+#       /etc/systemd/system/sportshub.service
+# DynamicUser cannot enter a private home directory, and running as yourself also lets the fantasy
+# hook read your own files.
 [Unit]
 Description=Sports Hub (TV dashboard server)
 After=network-online.target
