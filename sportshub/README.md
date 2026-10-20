@@ -161,8 +161,10 @@ colours. Basketball is left quiet because it scores every 20 seconds. If you wan
 audio file under `static/sounds/` (git-ignored) and name it per favourite with `sound`, or once for
 all of them with `gameMode.sound`. The kiosk app allows autoplay; a plain browser may not.
 
-To see a callout without waiting for a game, open the browser console on the page and run
-`SportsHubPage.simulateScore("nfl", "<game id>", "away", 7)`.
+To see the callouts without waiting for a game: press `0` on the page (each press is the next
+sport), or open `http://<pc-ip>:8777/?demo=score` to play all five in a row. On the stick:
+`adb shell am start -n com.sportshub.tv/.MainActivity --es url "http://<pc-ip>:8777/?demo=score"`,
+then set the URL back without the query.
 
 ## Configuration
 

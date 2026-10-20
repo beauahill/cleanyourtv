@@ -798,6 +798,7 @@
     else if (k === "Enter" || code === 13 || k === " ") activate();
     else if (isBack) { if (state.tab !== "all") selectTab("all"); else focusEl($("#tab-all")); }
     else if (/^[1-9]$/.test(k)) { const t = $("#tabs").children[parseInt(k, 10) - 1]; if (t) selectTab(t.dataset.tab); }
+    else if (k === "0") demoCallout();
     else if (k === "r" || k === "R" || k === "MediaPlayPause") loadToday();
     else return;
     ev.preventDefault();
@@ -809,6 +810,7 @@
     home() { exitGameMode(); closeOverlay(); selectTab("all"); },
     gameMode(league, id) { const g = allGames().find((x) => x.league === league && x.id === id); if (g) enterGameMode(g); },
     // for testing callouts from the browser console: SportsHubPage.simulateScore("nfl", "401901001", "away", 7)
+    demo(sport) { demoCallout(sport); },
     simulateScore(league, id, side, delta) { const g = allGames().find((x) => x.league === league && x.id === id); if (!g) return; g[side].score = String((parseInt(g[side].score, 10) || 0) + delta); detectScoreChanges(); if (state.gm.active) renderGameMode(); else renderGames(); },
     refresh() { loadToday(); loadMyTeams(); loadNews(); loadFantasy(); },
   };
@@ -1147,6 +1149,30 @@
     try { const a = new Audio(src); a.volume = 1; a.play().catch(() => {}); } catch (e) { /* no audio */ }
   }
 
+  // Demo callouts: press 0 on the page, or open /?demo=score to play every sport once.
+  const DEMO_SPORTS = ["football", "hockey", "baseball", "basketball", "soccer"];
+  let demoIndex = 0;
+  function demoCallout(sport) {
+    sport = sport || DEMO_SPORTS[demoIndex++ % DEMO_SPORTS.length];
+    const favs = (state.config && state.config.favorites) || [];
+    const live = allGames().find((g) => g.favorite) || allGames()[0];
+    const team = live ? (isFavoriteTeam(live, "away") ? live.away : live.home) : null;
+    const t = team || { abbr: (favs[0] && favs[0].team || "HOME").toUpperCase(), short: "Home Team", color: "ffc425", altColor: "492f24" };
+    const g = { sport: sport, league: "demo", id: "demo", shortName: (t.abbr || "HOME") + " vs OPP", detail: "Demo",
+                away: t, home: { abbr: "OPP", short: "Visitors", color: "334455", altColor: "ffffff", score: "0" }, favorite: true };
+    g.away = Object.assign({}, t, { score: sport === "football" ? "7" : "1" });
+    const word = scoreWord(g, sport === "football" ? 7 : 1) || "Score";
+    showCallout(word + " " + (t.short || t.abbr), g, "away", true);
+    playScoreSound(g, "away");
+  }
+  function maybeRunDemo() {
+    const q = new URLSearchParams(location.search);
+    if (q.get("demo") !== "score") return;
+    let i = 0;
+    const next = () => { if (i < DEMO_SPORTS.length) { demoCallout(DEMO_SPORTS[i++]); setTimeout(next, 7000); } };
+    setTimeout(next, 1500);
+  }
+
   // Auto takeover: a favourite is live and the remote has been idle -> show the board.
   function gameModeTick() {
     const cfg = gmCfg();
@@ -1204,6 +1230,7 @@
     setInterval(gameModeTick, 5000);
     setInterval(() => { if (state.gm.active) loadGameDetails(); }, Math.max(15, gmCfg().refreshSeconds || 15) * 1000);
     document.addEventListener("visibilitychange", () => { if (!document.hidden) loadToday(); });
+    maybeRunDemo();
   }
 
   boot();
