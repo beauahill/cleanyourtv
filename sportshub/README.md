@@ -232,9 +232,21 @@ background-image), `logos` (up to two image URLs flanking the title). ESPN logo 
 
 ### Fantasy hook
 
-If you already have a script that knows your fantasy league (the `ff.py` on the mini PC that logs
-into ESPN Fantasy), you can put its output in the rail without teaching this server anything
-about ESPN's fantasy auth. Enable it and point at either a command or a URL that returns JSON:
+**ESPN Fantasy Football, ready made.** `adapters/espn_fantasy.py` reads an `ff_config.json` with
+`league_id`, `team_name` and, for a private league, the `espn_s2` and `swid` cookies, and prints
+your live matchup, record, top three starters and injury flags. Standard library only. In
+`config.local.json`:
+
+```json
+"fantasy": {"enabled": true,
+            "command": "python3 /home/you/tv-vibehack/sportshub/adapters/espn_fantasy.py --config /home/you/fantasy/ff_config.json"}
+```
+
+Try it by hand first: run that command in a terminal and it should print one line of JSON. If
+it prints `Fantasy unavailable: ...` the message says what is wrong (cookies, league id, team
+name). `--dump league.json` saves ESPN's raw reply for debugging; it contains no cookies.
+
+**Anything else.** Point `command` or `url` at anything that returns JSON in this shape:
 
 ```json
 "fantasy": {"enabled": true, "title": "Gillette League", "command": "python3 /home/beau/ff/ff.py --hub-json",
