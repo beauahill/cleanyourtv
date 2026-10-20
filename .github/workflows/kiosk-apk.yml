@@ -1,0 +1,52 @@
+name: Build Sports Hub kiosk APK
+
+on:
+  push:
+    paths:
+      - "sportshub/android/**"
+      - ".github/workflows/kiosk-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platforms;android-34 build-tools;34.0.0"
+
+      - name: Build
+        working-directory: sportshub/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --console=plain
+          cp app/build/outputs/apk/debug/app-debug.apk ../../sportshub-kiosk.apk
+          ls -la ../../sportshub-kiosk.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sportshub-kiosk
+          path: sportshub-kiosk.apk
+
+      # A moving "kiosk-latest" pre-release so the APK has a stable download URL:
+      # https://github.com/<owner>/<repo>/releases/download/kiosk-latest/sportshub-kiosk.apk
+      - name: Publish kiosk-latest release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: kiosk-latest
+          name: Sports Hub kiosk (latest build)
+          prerelease: true
+          body: |
+            Debug-signed kiosk APK built from `${{ github.ref_name }}` at `${{ github.sha }}`.
+            Install: see sportshub/STICK-SETUP.md
+          files: sportshub-kiosk.apk

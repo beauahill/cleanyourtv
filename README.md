@@ -73,7 +73,8 @@ Everything is cached, so when ESPN hiccups the last scores stay up.
   <img src="docs/sportshub-home.png" alt="Sports Hub home screen" width="100%">
 </p>
 
-Setup, configuration and the Onn stick debloat steps are in [`sportshub/README.md`](sportshub/README.md).
+Setup and configuration are in [`sportshub/README.md`](sportshub/README.md); the stick-side debloat and
+install, written as a checklist an agent can run, is [`sportshub/STICK-SETUP.md`](sportshub/STICK-SETUP.md).
 
 ## The launcher
 
