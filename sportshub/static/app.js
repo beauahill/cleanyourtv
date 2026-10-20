@@ -27,6 +27,54 @@
     timers: {},
   };
 
+  // ------------------------------------------------------------------ themes
+  // Pick one with  "theme": {"preset": "wyo-bills"}  in config.json; any key below can be overridden
+  // next to "preset" (e.g. "accent": "#ff0000"). Colours are the teams' official hex values.
+  const LOGO = (sport, id) => "https://a.espncdn.com/i/teamlogos/" + sport + "/500/" + id + ".png";
+  const THEMES = {
+    "default": {},
+    "wyoming": {
+      accent: "#ffc425", accent2: "#492f24", accent2Fg: "#ffc425", live: "#ff3b3b", liveText: "#ff8a8a",
+      bg: "#0b0908", panel: "#17120f", panel2: "#211a15", line: "#302620", title: "#ffc425",
+      logos: [LOGO("ncaa", "2751")],
+    },
+    "bills": {
+      accent: "#c60c30", accent2: "#00338d", accent2Fg: "#ffffff", live: "#c60c30", liveText: "#ff6b7f",
+      bg: "#05081a", panel: "#0d1330", panel2: "#141d47", line: "#20306a", title: "#ffffff",
+      logos: [LOGO("nfl", "buf")],
+    },
+    "wyo-bills": {
+      accent: "#ffc425", accent2: "#00338d", accent2Fg: "#ffffff", live: "#c60c30", liveText: "#ff6b7f",
+      bg: "#090a12", panel: "#12131f", panel2: "#1a1c2e", line: "#262a40", title: "#ffc425",
+      gradient: "radial-gradient(ellipse at 0% 0%, rgba(255, 196, 37, 0.10), transparent 45%), radial-gradient(ellipse at 100% 100%, rgba(0, 51, 141, 0.35), transparent 50%)",
+      logos: [LOGO("ncaa", "2751"), LOGO("nfl", "buf")],
+    },
+  };
+
+  function hexToRgb(hex) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+    if (!m) return null;
+    const n = parseInt(m[1], 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(", ");
+  }
+
+  function applyTheme(cfg) {
+    const t = Object.assign({}, THEMES[(cfg && cfg.preset) || "default"] || {}, cfg || {});
+    const root = document.documentElement.style;
+    const map = { accent: "--accent", accent2: "--accent-2", accent2Fg: "--accent-2-fg", live: "--live",
+      liveText: "--live-text", bg: "--bg", panel: "--panel", panel2: "--panel-2", line: "--line",
+      title: "--title-color", text: "--text", muted: "--muted", dim: "--dim", gradient: "--bg-gradient" };
+    Object.keys(map).forEach((k) => { if (t[k]) root.setProperty(map[k], t[k]); });
+    const rgb = hexToRgb(t.accent);
+    if (rgb) root.setProperty("--accent-rgb", rgb);
+    const logos = t.logos || [];
+    [["#title-logo-left", logos[0]], ["#title-logo-right", logos[1] || (logos.length === 1 ? null : null)]].forEach(([sel, src]) => {
+      const img = $(sel);
+      if (src) { img.src = src; img.classList.remove("hidden"); img.onerror = () => img.classList.add("hidden"); }
+      else img.classList.add("hidden");
+    });
+  }
+
   // ------------------------------------------------------------------ data
   async function getJSON(url) {
     const r = await fetch(url, { cache: "no-store" });
@@ -38,6 +86,7 @@
     state.config = await getJSON("/api/config");
     $("#title").textContent = state.config.title || "Sports Hub";
     document.title = state.config.title || "Sports Hub";
+    applyTheme(state.config.theme);
     renderDock();
   }
 

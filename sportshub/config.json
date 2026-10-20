@@ -1,6 +1,7 @@
 {
   "title": "Man Cave",
   "timezone": "America/Denver",
+  "theme": {"preset": "wyo-bills"},
 
   "leagues": [
     {"key": "nfl",   "label": "NFL",   "sport": "football",   "league": "nfl"},

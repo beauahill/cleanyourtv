@@ -152,6 +152,25 @@ answering, the last good data stays on screen with an "OFFLINE · cached" pill; 
   using the kiosk app and the dock fills itself with every installed TV app, alphabetically. A
   `color` (`"#1d9bf0"`) overrides the generated tile colour.
 
+### Theme
+
+```json
+"theme": {"preset": "wyo-bills"}
+```
+
+Presets: `default` (neutral dark, amber focus ring), `wyoming` (brown and gold), `bills` (royal
+blue and red), `wyo-bills` (gold focus ring and favourite edges, Bills blue active tab, Bills red
+live indicators, both logos beside the title). Any colour can be overridden next to the preset:
+
+```json
+"theme": {"preset": "wyo-bills", "title": "#ffffff", "logos": ["https://a.espncdn.com/i/teamlogos/ncaa/500/2751.png"]}
+```
+
+Keys: `accent` (focus ring, favourite edge), `accent2` / `accent2Fg` (active tab), `live` /
+`liveText`, `bg`, `panel`, `panel2`, `line`, `title`, `text`, `muted`, `dim`, `gradient` (any CSS
+background-image), `logos` (up to two image URLs flanking the title). ESPN logo URLs follow
+`https://a.espncdn.com/i/teamlogos/{nfl|nba|nhl|mlb|ncaa}/500/{abbr or college id}.png`.
+
 ### Fantasy hook
 
 If you already have a script that knows your fantasy league (the `ff.py` on the mini PC that logs

@@ -17,9 +17,15 @@
   --muted: #8d97a6;
   --dim: #58637a;
   --accent: #ffb300;         /* focus ring + favourite accent */
-  --live: #ff3b3b;
+  --accent-rgb: 255, 179, 0;
+  --accent-2: #161c25;       /* active tab background */
+  --accent-2-fg: #f2f4f7;
+  --live: #ff3b3b;           /* live dots */
+  --live-text: #ff8a8a;      /* live clocks and pills */
+  --title-color: #8d97a6;
+  --bg-gradient: none;
   --win: #ffffff;
-  --focus-glow: 0 0 0 0.35rem rgba(255, 179, 0, 0.95), 0 0 2.5rem rgba(255, 179, 0, 0.35);
+  --focus-glow: 0 0 0 0.35rem rgba(var(--accent-rgb), 0.95), 0 0 2.5rem rgba(var(--accent-rgb), 0.35);
   --radius: 1.1rem;
   --safe: 2.5rem;             /* overscan margin */
 }
@@ -27,6 +33,7 @@
 html { font-size: calc(100vw / 120); }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); }
+body { background-image: var(--bg-gradient); background-attachment: fixed; }
 body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-weight: 400; line-height: 1.2; }
 .hidden { display: none !important; }
 
@@ -42,14 +49,16 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
 .clock-time { font-size: 4.2rem; font-weight: 200; letter-spacing: -0.02em; line-height: 1; }
 .clock-date { font-size: 1.5rem; color: var(--muted); margin-top: 0.3rem; font-weight: 300; }
-.title { font-size: 2rem; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+.title-wrap { display: flex; align-items: center; justify-content: center; gap: 1.4rem; }
+.title { font-size: 2rem; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--title-color); }
+.title-logo { height: 3.6rem; width: 3.6rem; object-fit: contain; }
 .status { display: flex; justify-content: flex-end; align-items: center; gap: 1.2rem; }
 .updated { color: var(--dim); font-size: 1.3rem; }
 .pill {
   font-size: 1.3rem; font-weight: 600; letter-spacing: 0.08em; padding: 0.45rem 1rem; border-radius: 2rem;
   display: inline-flex; align-items: center; gap: 0.6rem; border: 0.12rem solid var(--line); color: var(--muted);
 }
-.pill-live { border-color: rgba(255, 59, 59, 0.5); color: #ff8a8a; background: rgba(255, 59, 59, 0.08); }
+.pill-live { border-color: var(--live); color: var(--live-text); }
 .pill-stale { border-color: rgba(255, 179, 0, 0.5); color: var(--accent); }
 .dot { width: 0.8rem; height: 0.8rem; border-radius: 50%; background: var(--live); animation: blink 1.4s infinite; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
@@ -61,7 +70,7 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
   color: var(--muted); background: var(--panel); border: 0.12rem solid transparent;
 }
 .tab .count { color: var(--dim); font-weight: 400; margin-left: 0.5rem; font-size: 1.3rem; }
-.tab.active { color: var(--text); background: var(--panel-2); border-color: var(--line); }
+.tab.active { color: var(--accent-2-fg); background: var(--accent-2); border-color: var(--line); }
 .tab .live-dot { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--live); margin-left: 0.6rem; vertical-align: middle; }
 
 /* ---------- main ---------- */
@@ -85,7 +94,7 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .card.post { opacity: 0.72; }
 .card-status { display: flex; justify-content: space-between; align-items: center; font-size: 1.35rem; color: var(--muted); min-height: 1.6rem; }
 .card-status .state { font-weight: 600; letter-spacing: 0.04em; display: flex; align-items: center; gap: 0.6rem; }
-.card.in .card-status .state { color: #ff8a8a; }
+.card.in .card-status .state { color: var(--live-text); }
 .card .bcast { color: var(--dim); font-size: 1.25rem; max-width: 45%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .team { display: grid; grid-template-columns: 3.2rem 1fr auto; align-items: center; gap: 0.9rem; }
 .team .logo { width: 3.2rem; height: 3.2rem; object-fit: contain; }
@@ -100,7 +109,7 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .team.loser .score { color: var(--muted); font-weight: 400; }
 .card-foot { font-size: 1.3rem; color: var(--muted); min-height: 1.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.8rem; }
 .card-foot > span:last-child { overflow: hidden; text-overflow: ellipsis; }
-.card-foot.redzone { color: #ff8a8a; }
+.card-foot.redzone { color: var(--live-text); }
 .bases { display: inline-grid; grid-template-columns: 1fr 1fr; width: 1.3rem; height: 1.3rem; transform: rotate(45deg); gap: 0.15rem; margin: 0 0.5rem 0 0.4rem; flex: 0 0 auto; }
 .bases i { background: var(--line); display: block; }
 .bases i.on { background: var(--accent); }
@@ -123,7 +132,7 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .myteam .line1 { font-size: 1.6rem; font-weight: 500; display: flex; justify-content: space-between; gap: 0.6rem; }
 .myteam .line1 .rec { color: var(--muted); font-weight: 400; }
 .myteam .line2 { font-size: 1.25rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.myteam .line2 .live { color: #ff8a8a; font-weight: 600; }
+.myteam .line2 .live { color: var(--live-text); font-weight: 600; }
 .fantasy { display: grid; gap: 0.5rem; }
 .fantasy .frow { display: flex; justify-content: space-between; gap: 1rem; font-size: 1.45rem; }
 .fantasy .frow .lbl { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -167,7 +176,7 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .ov-team .rec { font-size: 1.3rem; color: var(--muted); }
 .ov-score { font-size: 5.5rem; font-weight: 600; font-variant-numeric: tabular-nums; text-align: center; letter-spacing: -0.02em; }
 .ov-status { font-size: 1.5rem; color: var(--muted); text-align: center; }
-.ov-status.in { color: #ff8a8a; font-weight: 600; }
+.ov-status.in { color: var(--live-text); font-weight: 600; }
 .ov-sub { font-size: 1.3rem; color: var(--dim); text-align: center; }
 .ov-section h3 { font-size: 1.2rem; letter-spacing: 0.25em; color: var(--dim); font-weight: 600; margin: 0 0 0.7rem; text-transform: uppercase; }
 .linescore { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 1.5rem; }
