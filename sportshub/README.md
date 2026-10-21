@@ -111,7 +111,8 @@ browsers honour. You lose the Back/Home handling and the offline page.
 |---|---|
 | ▲ ▼ ◀ ▶ | Move the focus ring between the league tabs, the game cards and the dock. Sideways moves stay in the row. |
 | OK | On a tab: show that league. On a card: open the game (linescore, scoring, leaders, team stats). On a dock tile: launch the app. |
-| Back | Close the overlay, else return to Today. |
+| Back | Close the overlay or board; on the hub, jump to the app dock (and back to the tabs). |
+| Hold ▼ / ▲ | Jump from the score grid straight to the dock / the tabs. |
 | 1–9 | Jump to the n-th tab. |
 | Play/Pause | Refresh now. |
 
@@ -215,9 +216,12 @@ The full set of keys, with their defaults:
   keep it out of the headlines.
 - **Favourites.** `team` is the abbreviation ESPN uses in its URLs (`den`, `kc`, `wyo`, `col`).
   For college teams the numeric id also works. The defaults are a Wyoming/Colorado guess, change them.
-- **Apps.** `package` names: `tools/tv.py 'pm list packages'` on the stick. Leave `apps` empty when
-  using the kiosk app and the dock fills itself with every installed TV app, alphabetically. A
-  `color` (`"#1d9bf0"`) overrides the generated tile colour.
+- **Apps.** `package` names: `adb shell pm list packages` on the stick (or `tools/tv.py 'pm list
+  packages'`), e.g. `adb shell pm list packages | grep -i mountain` to find one app. Leave `apps`
+  empty when using the kiosk app and the dock fills itself with every installed TV app,
+  alphabetically. Tiles show the app's real TV banner when the page runs inside the kiosk; in a
+  plain browser they show initials unless you give an `icon` URL or drop `static/icons/<package>.png`
+  in place. `color` tints the initials tile. `"dockPosition": "top"` moves the dock under the tabs.
 
 ### Theme
 

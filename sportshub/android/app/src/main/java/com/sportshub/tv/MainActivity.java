@@ -7,7 +7,12 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.util.Base64;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,6 +30,7 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -237,6 +243,28 @@ public class MainActivity extends Activity {
         }
     }
 
+    private static Bitmap toBitmap(Drawable d, int maxW, int maxH) {
+        if (d instanceof BitmapDrawable && ((BitmapDrawable) d).getBitmap() != null) {
+            Bitmap b = ((BitmapDrawable) d).getBitmap();
+            if (b.getWidth() <= maxW && b.getHeight() <= maxH) {
+                return b;
+            }
+            float scale = Math.min((float) maxW / b.getWidth(), (float) maxH / b.getHeight());
+            return Bitmap.createScaledBitmap(b, Math.max(1, Math.round(b.getWidth() * scale)),
+                    Math.max(1, Math.round(b.getHeight() * scale)), true);
+        }
+        int w = d.getIntrinsicWidth() > 0 ? d.getIntrinsicWidth() : maxW;
+        int h = d.getIntrinsicHeight() > 0 ? d.getIntrinsicHeight() : maxH;
+        float scale = Math.min(1f, Math.min((float) maxW / w, (float) maxH / h));
+        w = Math.max(1, Math.round(w * scale));
+        h = Math.max(1, Math.round(h * scale));
+        Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmp);
+        d.setBounds(0, 0, w, h);
+        d.draw(c);
+        return bmp;
+    }
+
     private void toast(final String msg) {
         runOnUiThread(() -> Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show());
     }
@@ -287,6 +315,43 @@ public class MainActivity extends Activity {
             }
             Collections.sort(items, (a, b) -> a.optString("label").compareToIgnoreCase(b.optString("label")));
             return new JSONArray(items).toString();
+        }
+
+        /**
+         * The app's Leanback banner (16:9 TV artwork) or, failing that, its icon, as a PNG data URL.
+         * Empty string if the package is not installed. Cached by the page; cheap enough anyway.
+         */
+        @JavascriptInterface
+        public String icon(String pkg) {
+            if (pkg == null || pkg.isEmpty()) {
+                return "";
+            }
+            try {
+                PackageManager pm = getPackageManager();
+                ApplicationInfo ai = pm.getApplicationInfo(pkg, 0);
+                Drawable d = null;
+                Intent probe = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER).setPackage(pkg);
+                List<ResolveInfo> ris = pm.queryIntentActivities(probe, 0);
+                if (!ris.isEmpty()) {
+                    d = ris.get(0).activityInfo.loadBanner(pm);
+                }
+                if (d == null) {
+                    d = ai.loadBanner(pm);
+                }
+                if (d == null) {
+                    d = ai.loadIcon(pm);
+                }
+                if (d == null) {
+                    return "";
+                }
+                Bitmap bmp = toBitmap(d, 320, 180);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                bmp.compress(Bitmap.CompressFormat.PNG, 100, out);
+                return "data:image/png;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+            } catch (Exception e) {
+                Log.w(TAG, "icon " + pkg + " failed", e);
+                return "";
+            }
         }
 
         @JavascriptInterface

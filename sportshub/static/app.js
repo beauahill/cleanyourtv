@@ -525,6 +525,7 @@
     }
     if (!apps.length) { dock.classList.add("hidden"); return; }
     dock.classList.remove("hidden");
+    if (state.config && state.config.dockPosition === "top") $("#app").classList.add("dock-top");
     apps.forEach((a, i) => {
       const t = el("div", "app-tile");
       t.id = "app-" + i;
@@ -534,10 +535,30 @@
       const mono = el("span", "mono", initials(a.label));
       mono.style.background = a.color || hashColor(a.label);
       t.appendChild(mono);
+      // artwork: explicit "icon" URL in config, else the kiosk's copy of the app's TV banner,
+      // else static/icons/<package>.png if you put one there, else the initials above
+      const src = a.icon || bridgeIcon(a.package) || (a.package ? "icons/" + a.package + ".png" : "");
+      if (src) {
+        const img = el("img", "art");
+        img.alt = "";
+        img.onload = () => t.classList.add("has-art");
+        img.onerror = () => img.remove();
+        img.src = src;
+        t.insertBefore(img, mono);
+      }
       t.appendChild(el("span", null, a.label));
       t.onclick = () => launchApp(a);
       dock.appendChild(t);
     });
+  }
+
+  const iconCache = {};
+  function bridgeIcon(pkg) {
+    if (!pkg || !window.SportsHub || typeof window.SportsHub.icon !== "function") return "";
+    if (!(pkg in iconCache)) {
+      try { iconCache[pkg] = window.SportsHub.icon(pkg) || ""; } catch (e) { iconCache[pkg] = ""; }
+    }
+    return iconCache[pkg];
   }
 
   function initials(s) {
@@ -793,6 +814,7 @@
     }
   }
 
+  let lastKey = null, lastKeyTime = 0, rapidCount = 0;
   function onKey(ev) {
     const idleMs = Date.now() - state.lastKeyAt;
     state.lastKeyAt = Date.now();
@@ -815,12 +837,26 @@
       ev.preventDefault();
       return;
     }
-    if (k === "ArrowUp") move("up");
+    // a held key arrives as repeat events; some remotes send rapid discrete presses instead
+    const rapid = k === lastKey && Date.now() - lastKeyTime < 140;
+    rapidCount = rapid ? rapidCount + 1 : 0;
+    lastKey = k; lastKeyTime = Date.now();
+    if ((ev.repeat || rapidCount >= 2) && (k === "ArrowDown" || k === "ArrowUp") && state.focus && state.focus.dataset.focusable === "card") {
+      // holding Down/Up on the grid jumps straight to the dock / the tabs instead of row by row
+      focusEl(k === "ArrowDown" ? $("#dock [data-focusable]") : $("#tab-" + state.tab));
+    }
+    else if (k === "ArrowUp") move("up");
     else if (k === "ArrowDown") move("down");
     else if (k === "ArrowLeft") move("left");
     else if (k === "ArrowRight") move("right");
     else if (k === "Enter" || code === 13 || k === " ") activate();
-    else if (isBack) { if (state.tab !== "all") selectTab("all"); else focusEl($("#tab-all")); }
+    else if (isBack) {
+      // Back on the hub: jump to the dock; Back again (or from the dock): back to the tabs
+      const inDock = state.focus && state.focus.dataset.focusable === "app";
+      const dockTile = $("#dock [data-focusable]");
+      if (!inDock && dockTile) focusEl(dockTile);
+      else focusEl($("#tab-" + state.tab) || $("#tab-all"));
+    }
     else if (/^[1-9]$/.test(k)) { const t = $("#tabs").children[parseInt(k, 10) - 1]; if (t) selectTab(t.dataset.tab); }
     else if (k === "0") demoCallout();
     else if (k === "r" || k === "R" || k === "MediaPlayPause") loadToday();
@@ -830,7 +866,7 @@
 
   // Exposed for the Android kiosk wrapper: it calls these on hardware Back / Home / resume.
   window.SportsHubPage = {
-    back() { if (state.gm.active) { exitGameMode(); return true; } if (state.overlayOpen) { closeOverlay(); return true; } if (state.tab !== "all") { selectTab("all"); return true; } return false; },
+    back() { if (state.gm.active) { exitGameMode(); return true; } if (state.overlayOpen) { closeOverlay(); return true; } onKey({ key: "Escape", keyCode: 27, preventDefault() {} }); return true; },
     home() { exitGameMode(); closeOverlay(); selectTab("all"); },
     gameMode(league, id) { const g = allGames().find((x) => x.league === league && x.id === id); if (g) enterGameMode(g); },
     // for testing callouts from the browser console: SportsHubPage.simulateScore("nfl", "401901001", "away", 7)

@@ -160,12 +160,19 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 }
 .dock::-webkit-scrollbar { display: none; }
 .app-tile {
-  flex: 0 0 auto; min-width: 11rem; padding: 1.1rem 1.4rem; border-radius: 0.9rem; background: var(--panel-2);
-  border: 0.12rem solid transparent; display: grid; place-items: center; gap: 0.4rem; font-size: 1.5rem; font-weight: 600;
+  flex: 0 0 auto; min-width: 11rem; padding: 0.8rem 1.2rem 0.7rem; border-radius: 0.9rem; background: var(--panel-2);
+  border: 0.12rem solid transparent; display: grid; place-items: center; gap: 0.5rem; font-size: 1.4rem; font-weight: 600;
   letter-spacing: 0.02em; color: var(--text);
 }
 .app-tile .mono { width: 2.6rem; height: 2.6rem; border-radius: 0.6rem; display: grid; place-items: center; font-size: 1.3rem; font-weight: 700; color: #fff; }
+.app-tile .art { width: 9.6rem; height: 5.4rem; object-fit: contain; border-radius: 0.5rem; background: rgba(0,0,0,0.25); }
+.app-tile.has-art { padding-top: 0.6rem; }
+.app-tile.has-art .mono { display: none; }
 .app-tile.focused { transform: scale(1.06); }
+/* "dockPosition": "top" puts the dock under the tabs instead of at the bottom */
+.app.dock-top { grid-template-rows: auto auto auto 1fr; }
+.app.dock-top .dock { order: 2; }
+.app.dock-top .main { order: 3; }
 
 /* ---------- overlay ---------- */
 .overlay {

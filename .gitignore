@@ -16,3 +16,4 @@ backup/
 .DS_Store
 sportshub/static/sounds/
 sportshub/static/fonts/custom/
+sportshub/static/icons/*.png
