@@ -52,6 +52,20 @@ public class MainActivity extends Activity {
     private WebView web;
     private String url;
     private boolean failed;
+    private boolean pageHadError;
+    private int retryAttempts;
+    private static final int RETRY_STEP_MS = 2000;
+    private static final int RETRY_MAX_MS = 15000;
+    private final android.os.Handler retryHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable retryTask = new Runnable() {
+        @Override
+        public void run() {
+            if (failed) {
+                Log.i(TAG, "auto-retry #" + retryAttempts + " loading " + url);
+                web.loadUrl(url);
+            }
+        }
+    };
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -132,6 +146,24 @@ public class MainActivity extends Activity {
         super.onPause();
     }
 
+    @Override
+    protected void onDestroy() {
+        cancelRetry();
+        super.onDestroy();
+    }
+
+    private void scheduleRetry() {
+        retryHandler.removeCallbacks(retryTask);
+        retryAttempts++;
+        int delay = Math.min(RETRY_STEP_MS * retryAttempts, RETRY_MAX_MS);
+        retryHandler.postDelayed(retryTask, delay);
+    }
+
+    private void cancelRetry() {
+        retryHandler.removeCallbacks(retryTask);
+        retryAttempts = 0;
+    }
+
     private void hideSystemUi() {
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -149,6 +181,7 @@ public class MainActivity extends Activity {
             return true;
         }
         if (failed && (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER)) {
+            cancelRetry();
             failed = false;
             web.loadUrl(url);
             return true;
@@ -159,6 +192,13 @@ public class MainActivity extends Activity {
     // ---------------------------------------------------------------- navigation / errors
 
     private class Client extends WebViewClient {
+        @Override
+        public void onPageStarted(WebView view, String loading, android.graphics.Bitmap favicon) {
+            if (loading != null && (loading.startsWith("http://") || loading.startsWith("https://"))) {
+                pageHadError = false;
+            }
+        }
+
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             Uri u = request.getUrl();
@@ -192,15 +232,23 @@ public class MainActivity extends Activity {
             if (!request.isForMainFrame()) {
                 return;
             }
+            pageHadError = true;
             failed = true;
             String msg = String.valueOf(error.getDescription());
-            Log.w(TAG, "load failed: " + msg);
+            Log.w(TAG, "load failed: " + msg + " (auto-retry scheduled)");
+            scheduleRetry();
             view.loadDataWithBaseURL(null, errorPage(msg), "text/html", "utf-8", null);
         }
 
         @Override
         public void onPageFinished(WebView view, String loaded) {
-            if (!failed) {
+            if (loaded != null && (loaded.startsWith("http://") || loaded.startsWith("https://"))
+                    && !pageHadError) {
+                if (failed || retryAttempts > 0) {
+                    Log.i(TAG, "hub reachable again, clearing retry");
+                }
+                failed = false;
+                cancelRetry();
                 view.requestFocus();
             }
         }
@@ -213,8 +261,8 @@ public class MainActivity extends Activity {
                 + "<div style='font-size:5vw;font-weight:200'>Sports Hub is offline</div>"
                 + "<div style='font-size:2vw;color:#8d97a6;margin-top:2vw'>Couldn't reach<br>"
                 + "<span style='color:#ffb300'>" + escape(url) + "</span><br>" + escape(msg) + "</div>"
-                + "<div style='font-size:1.8vw;color:#58637a;margin-top:3vw'>Is server.py running on the PC? "
-                + "Press OK to retry.<br>Change the URL with: am start -n com.sportshub.tv/.MainActivity "
+                + "<div style='font-size:1.8vw;color:#58637a;margin-top:3vw'>Reconnecting automatically&hellip; "
+                + "(waiting for Wi-Fi / server). Press OK to retry now.<br>Change the URL with: am start -n com.sportshub.tv/.MainActivity "
                 + "--es url http://PC-IP:8777/</div></div></body></html>";
     }
 
