@@ -72,12 +72,17 @@
     const rgb = hexToRgb(t.accent);
     if (rgb) root.setProperty("--accent-rgb", rgb);
     applyTitleFont(t.titleFont);
-    const logos = t.logos || [];
-    [["#title-logo-left", logos[0]], ["#title-logo-right", logos[1] || (logos.length === 1 ? null : null)]].forEach(([sel, src]) => {
-      const img = $(sel);
-      if (src) { img.src = src; img.classList.remove("hidden"); img.onerror = () => img.classList.add("hidden"); }
-      else img.classList.add("hidden");
-    });
+    const left = $("#title-logos-left"), right = $("#title-logos-right"), logos = t.logos || [];
+    if (left && right && !left.children.length && !right.children.length) {
+      const half = Math.ceil(logos.length / 2);
+      logos.forEach((src, i) => {
+        if (!src) return;
+        const img = el("img");
+        img.src = src; img.alt = "";
+        img.onerror = () => img.remove();
+        (i < half ? left : right).appendChild(img);
+      });
+    }
   }
 
   // Custom title font: "titleFont": {"file": "fonts/custom/wyoming.ttf", "size": "2.6rem",
@@ -367,10 +372,31 @@
   }
 
   // ------------------------------------------------------------------ render: rail
+  // All favourite logos flanking the title, deduped by logo so Wyoming (cfb + ncaam) shows once.
+  function renderTitleLogos(teams) {
+    const left = $("#title-logos-left"), right = $("#title-logos-right");
+    if (!left || !right) return;
+    const seen = new Set(), logos = [];
+    (teams || []).forEach((t) => {
+      if (!t || !t.logo || seen.has(t.logo)) return;
+      seen.add(t.logo); logos.push(t);
+    });
+    if (!logos.length) return;
+    left.innerHTML = ""; right.innerHTML = "";
+    const half = Math.ceil(logos.length / 2);
+    logos.forEach((t, i) => {
+      const img = el("img");
+      img.src = t.logo; img.alt = t.short || t.abbr || "";
+      img.onerror = () => img.remove();
+      (i < half ? left : right).appendChild(img);
+    });
+  }
+
   function renderMyTeams() {
     const root = $("#myteams");
     root.innerHTML = "";
     const teams = (state.myteams && state.myteams.teams) || [];
+    renderTitleLogos(teams);
     root.classList.toggle("dense", teams.length > 4);
     if (!teams.length) {
       root.appendChild(el("div", "myteam-empty", state.config && state.config.favorites && state.config.favorites.length ? "…" : "Add favourites in config.json"));
@@ -749,6 +775,8 @@
     state.focus = e;
     e.classList.add("focused");
     state.lastFocusByZone[e.dataset.focusable] = e.id;
+    const dockEl = document.getElementById("dock");
+    if (dockEl) dockEl.classList.toggle("dock-show", e.dataset.focusable === "app");
     if (!silent) scrollIntoView(e);
   }
 
