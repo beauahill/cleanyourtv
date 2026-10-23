@@ -47,6 +47,16 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         boolean onTileVerticalKey(int position, int keyCode);
 
         void onInputsTileClicked();
+
+        void onDashboardTileClicked();
+    }
+
+    /** Pseudo package of the built-in web dashboard tile (res/values/config.xml, dock_apps). */
+    static final String DASHBOARD_PKG = "com.gathin.tvhome.dashboard";
+    private static final String INPUTS_PKG = "com.gathin.tvhome.inputs";
+
+    private static boolean isBuiltIn(String pkg) {
+        return DASHBOARD_PKG.equals(pkg) || INPUTS_PKG.equals(pkg);
     }
 
     static final class Entry {
@@ -89,6 +99,8 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     /** Never shown as tiles (res/values/config.xml, hidden_apps). */
     private final Set<String> hidden;
     private final List<Entry> items = new ArrayList<>();
+    /** Whether the last reload() added the Dashboard tile, so the home screen can tell when to reload. */
+    boolean hasDashboardTile;
     private static final java.util.Map<String, Bitmap> POSTER_CACHE = new java.util.HashMap<>();
 
     AppAdapter(Context ctx, TileListener listener, int dockSize) {
@@ -116,6 +128,11 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         }
         fresh.add(new Entry("Inputs", new ComponentName("com.gathin.tvhome.inputs", "InputsActivity"),
                 ctx.getDrawable(R.drawable.banner_inputs), ctx.getDrawable(R.drawable.ic_input)));
+        hasDashboardTile = DashboardActivity.isConfigured(ctx);
+        if (hasDashboardTile) {
+            fresh.add(new Entry(DashboardActivity.title(ctx), new ComponentName(DASHBOARD_PKG, "DashboardActivity"),
+                    ctx.getDrawable(R.drawable.banner_dashboard), null));
+        }
 
         // Row 0: Dock Core Apps
         List<Entry> row0 = new ArrayList<>();
@@ -243,8 +260,10 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
             h.label.setVisibility(View.VISIBLE);
         }
         h.card.setOnClickListener(v -> {
-            if ("com.gathin.tvhome.inputs".equals(e.pkg)) {
+            if (INPUTS_PKG.equals(e.pkg)) {
                 if (listener != null) listener.onInputsTileClicked();
+            } else if (DASHBOARD_PKG.equals(e.pkg)) {
+                if (listener != null) listener.onDashboardTileClicked();
             } else if (e.isStremio) {
                 Intent i = new Intent(Intent.ACTION_VIEW,
                         Uri.parse("stremio:///detail/" + e.stremioType + "/" + e.stremioId));
@@ -266,7 +285,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
             }
         });
         h.card.setOnLongClickListener(v -> {
-            if (e.isStremio || "com.gathin.tvhome.inputs".equals(e.pkg)) return true;
+            if (e.isStremio || isBuiltIn(e.pkg)) return true;
             Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + e.pkg));
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             try {
@@ -302,7 +321,8 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     int ambientColorAt(int position) {
         if (position < 0 || position >= items.size()) return 0xFF444444;
         Entry e = items.get(position);
-        if ("com.gathin.tvhome.inputs".equals(e.pkg)) return 0xFF2563EB;
+        if (INPUTS_PKG.equals(e.pkg)) return 0xFF2563EB;
+        if (DASHBOARD_PKG.equals(e.pkg)) return 0xFF10B981;
         if (e.ambient == 0) e.ambient = vividColor(e.banner != null ? e.banner : e.icon);
         return e.ambient;
     }

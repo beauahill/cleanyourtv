@@ -7,6 +7,7 @@
 
     <!-- Apps pinned to the dock row at the bottom, in this order. Missing apps are skipped. -->
     <string-array name="dock_apps">
+        <item>com.gathin.tvhome.dashboard</item>   <!-- built-in web dashboard; hidden while dashboard_url is empty -->
         <item>com.stremio.one</item>
         <item>com.google.android.youtube.tv</item>
         <item>com.netflix.ninja</item>
@@ -25,4 +26,24 @@
 
     <!-- Tiles per row in the grid; the dock always has this many slots. -->
     <integer name="columns">5</integer>
+
+    <!--
+      Web dashboard (e.g. an STR / short-term-rental KPI page) shown full screen from its dock tile.
+      Every value below can also be changed on the TV over ADB without rebuilding: see
+      "Web dashboard" in launcher/DASHBOARD.md.
+    -->
+    <!-- http(s) address of the dashboard. Leave empty to hide the Dashboard tile. -->
+    <string name="dashboard_url" translatable="false"></string>
+    <!-- Shown while the page loads. -->
+    <string name="dashboard_title" translatable="false">STR Dashboard</string>
+    <!-- Open the dashboard by itself once after every boot (bar / lobby TVs). -->
+    <bool name="dashboard_autostart">false</bool>
+    <!-- Go back to the dashboard after this many minutes untouched on the home screen. 0 = never. -->
+    <integer name="dashboard_idle_minutes">0</integer>
+    <!-- Reload the page this often, for dashboards that don't refresh themselves. 0 = never. -->
+    <integer name="dashboard_reload_minutes">15</integer>
+    <!-- Initial page scale in percent; 0 fits the page to the screen width. Try 75 if it looks cramped. -->
+    <integer name="dashboard_zoom_percent">0</integer>
+    <!-- Ask sites for their desktop layout instead of the phone one. -->
+    <bool name="dashboard_desktop_mode">true</bool>
 </resources>

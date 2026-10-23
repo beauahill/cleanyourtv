@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dock tile for the built-in web dashboard: rising bars and a trend line on dark glass. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+
+    <path
+        android:fillColor="#FF0F1A17"
+        android:pathData="M0,0h320v180h-320z" />
+
+    <path
+        android:strokeColor="#2EFFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M1,1h318v178h-318z" />
+
+    <!-- Bars -->
+    <path android:fillColor="#5934D399" android:pathData="M104,104h18v30h-18z" />
+    <path android:fillColor="#8034D399" android:pathData="M132,88h18v46h-18z" />
+    <path android:fillColor="#A634D399" android:pathData="M160,96h18v38h-18z" />
+    <path android:fillColor="#CC34D399" android:pathData="M188,70h18v64h-18z" />
+
+    <!-- Baseline -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M96,142h120" />
+
+    <!-- Trend line -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M104,86 L141,66 L169,76 L212,44" />
+</vector>
