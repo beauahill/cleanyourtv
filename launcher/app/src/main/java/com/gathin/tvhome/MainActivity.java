@@ -23,6 +23,7 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -95,6 +96,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private int lastFocused = 0;
     private float density;
 
+    /** Last remote key press on the home screen, for returning to the dashboard when idle. */
+    private long lastInteraction = SystemClock.elapsedRealtime();
+
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable minuteTick = new Runnable() {
         @Override
@@ -102,6 +106,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             updateGreeting();
             updateWifiLabel();
             updateWallpaper();
+            if (maybeReturnToDashboard()) return;
             handler.postDelayed(this, MINUTE_MS);
         }
     };
@@ -208,11 +213,39 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 setDockPeek(false, true);
             }
         });
+
+        if (savedInstanceState == null) maybeAutostartDashboard();
     }
 
     @Override
     public void onInputsTileClicked() {
         showInputs();
+    }
+
+    @Override
+    public void onDashboardTileClicked() {
+        DashboardActivity.open(this);
+    }
+
+    // ---- web dashboard ---------------------------------------------------------------------------
+
+    /** Opens the dashboard once per boot when dashboard_autostart is on (bar and lobby TVs). */
+    private void maybeAutostartDashboard() {
+        if (!DashboardActivity.autostart(this) || !DashboardActivity.isConfigured(this)) return;
+        int boot = Settings.Global.getInt(getContentResolver(), Settings.Global.BOOT_COUNT, -1);
+        SharedPreferences prefs = getSharedPreferences("tvhome_prefs", MODE_PRIVATE);
+        if (boot != -1 && prefs.getInt("dashboard_autostart_boot", -2) == boot) return;   // already done this boot
+        prefs.edit().putInt("dashboard_autostart_boot", boot).apply();
+        handler.postDelayed(() -> DashboardActivity.open(this), 1500);   // let the home screen settle first
+    }
+
+    /** True when the home screen was left untouched long enough and the dashboard was reopened. */
+    private boolean maybeReturnToDashboard() {
+        int idle = DashboardActivity.idleMinutes(this);
+        if (idle <= 0 || !DashboardActivity.isConfigured(this)) return false;
+        if (SystemClock.elapsedRealtime() - lastInteraction < idle * MINUTE_MS) return false;
+        DashboardActivity.open(this);
+        return true;
     }
 
     private boolean isInitialLaunch = true;
@@ -226,10 +259,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         heroName.setAlpha(0f);
         ambient.setAlpha(0f);
 
-        if (adapter.getItemCount() == 0) {
+        if (adapter.getItemCount() == 0 || adapter.hasDashboardTile != DashboardActivity.isConfigured(this)) {
             adapter.reload();
             grid.scheduleLayoutAnimation();
         }
+        lastInteraction = SystemClock.elapsedRealtime();
 
         updateGreeting();
         updateWifiLabel();
@@ -257,6 +291,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        lastInteraction = SystemClock.elapsedRealtime();
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             int code = event.getKeyCode();
             if (isPurpleOrMediaKey(code)) {

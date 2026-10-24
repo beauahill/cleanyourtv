@@ -26,6 +26,7 @@ Everything is reversible: packages are disabled, never uninstalled, and a restor
 - **Dynamic Day/Night Theme Cycle:** Automatically transitions wallpapers between day and night based on the local solar cycle.
 - **Calendar & Schedule Overlay:** Lightweight, keyboard/dpad friendly month calendar with day tracking and agenda support.
 - **Smart App Labels:** Keeps the interface clean by revealing app titles only under the currently focused item.
+- **Web Dashboard:** Shows any web page full screen from a dock tile, such as an STR dashboard on a bar TV. It can open on boot and return after idle time. See [`launcher/DASHBOARD.md`](launcher/DASHBOARD.md), including Chromecast with Google TV setup.
 - **Remote Video Key Shortcut:** Accessibility service helper to map remote media/video shortcuts to launch Stremio directly.
 
 | Dynamic Wallpaper & Peek Dock Mode | Dynamic Stremio Media Shelf |

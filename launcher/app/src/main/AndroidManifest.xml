@@ -39,6 +39,18 @@
             </intent-filter>
         </activity>
 
+        <!-- Full-screen web dashboard. Exported only so `am start` over ADB can push a URL; the DUMP
+             permission is held by the ADB shell but never granted to ordinary apps on the TV. -->
+        <activity
+            android:name=".DashboardActivity"
+            android:exported="true"
+            android:permission="android.permission.DUMP"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.gathin.tvhome.dashboard"
+            android:excludeFromRecents="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|locale|fontScale|density"
+            android:screenOrientation="landscape" />
+
         <service
             android:name=".TvAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"

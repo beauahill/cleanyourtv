@@ -3,9 +3,10 @@
 # JAVA_HOME / ANDROID_HOME are set.
 #
 # Usage: launcher\build-and-install.ps1 -TvHost 192.168.1.50 [-StockLauncher com.google.android.tvlauncher]
+# Several stock launchers: -StockLauncher pkg.one,pkg.two (Chromecast with Google TV: com.google.android.apps.tv.launcherx)
 param(
     [string]$TvHost = $env:TV_HOST,
-    [string]$StockLauncher = 'com.google.android.tvlauncher'
+    [string[]]$StockLauncher = @('com.google.android.tvlauncher')
 )
 $ErrorActionPreference = 'Stop'
 # Pipe plain UTF-8 to native commands; the default here prepends a BOM that corrupts the first command.
@@ -38,9 +39,8 @@ if ("$out" -notmatch 'Success') { throw 'pm install failed; the stock launcher w
 $out = & $py -I ..\tools\tv.py 'cmd package set-home-activity --user 0 com.gathin.tvhome'
 Write-Host $out
 if ("$out" -match 'Error') { throw 'could not set the new launcher as home; the stock launcher was left untouched' }
-@(
+(@(
     'pm grant com.gathin.tvhome android.permission.ACCESS_FINE_LOCATION 2>/dev/null; echo location-granted',
-    'cmd package set-home-activity --user 0 com.gathin.tvhome',
-    "pm disable-user --user 0 $StockLauncher"
-) | & $py -I ..\tools\tv.py --batch
+    'cmd package set-home-activity --user 0 com.gathin.tvhome'
+) + ($StockLauncher | ForEach-Object { "pm disable-user --user 0 $_" })) | & $py -I ..\tools\tv.py --batch
 Write-Host 'Installed. Press Home on the remote to see it.'
