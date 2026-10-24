@@ -55,6 +55,8 @@ public class DashboardActivity extends Activity {
     /** Set on the intent that opens the app grid from here, so the grid does not bounce straight back. */
     static final String EXTRA_FROM_DASHBOARD = "com.gathin.tvhome.FROM_DASHBOARD";
     private static final String ASSET_PREFIX = "file:///android_asset/";
+    /** Prefix for page settings pushed as --es page_<key> value and read with TvHome.get("<key>"). */
+    private static final String PAGE_PREFIX = "page_";
 
     private static final long RETRY_MS = 30_000L;
     private static final long MINUTE_MS = 60_000L;
@@ -64,6 +66,8 @@ public class DashboardActivity extends Activity {
     private View status;
     private TextView statusTitle, statusDetail, tvButton;
     private boolean mainFrameFailed;
+    /** Address of the page being shown, for the JavaScript bridge (which runs off the UI thread). */
+    private volatile String currentUrl = "";
 
     private final Runnable retry = () -> {
         if (web != null) web.reload();
@@ -117,8 +121,9 @@ public class DashboardActivity extends Activity {
 
     /**
      * Saves any of these intent extras so they survive reboots: url, title (strings); autostart,
-     * desktop, home (booleans); idle_minutes, reload_minutes, zoom (ints). "--ez reset true" clears them
-     * all back to config.xml.
+     * desktop, home (booleans); idle_minutes, reload_minutes, zoom (ints); and page_<key> strings that a
+     * bundled page reads with TvHome.get("<key>") (an empty value removes one). "--ez reset true" clears
+     * them all back to config.xml.
      */
     private void applyExtras(Intent intent) {
         Bundle x = intent != null ? intent.getExtras() : null;
@@ -129,6 +134,9 @@ public class DashboardActivity extends Activity {
                     KEY_RELOAD_MIN, KEY_ZOOM, KEY_DESKTOP, KEY_HOME}) {
                 e.remove(k);
             }
+            for (String k : prefs(this).getAll().keySet()) {
+                if (k.startsWith(PAGE_PREFIX)) e.remove(k);
+            }
         }
         if (x.containsKey("url")) e.putString(KEY_URL, String.valueOf(x.get("url")).trim());
         if (x.containsKey("title")) e.putString(KEY_TITLE, String.valueOf(x.get("title")));
@@ -138,6 +146,11 @@ public class DashboardActivity extends Activity {
         if (x.containsKey("idle_minutes")) e.putInt(KEY_IDLE_MIN, x.getInt("idle_minutes"));
         if (x.containsKey("reload_minutes")) e.putInt(KEY_RELOAD_MIN, x.getInt("reload_minutes"));
         if (x.containsKey("zoom")) e.putInt(KEY_ZOOM, x.getInt("zoom"));
+        for (String k : x.keySet()) {
+            if (!k.startsWith(PAGE_PREFIX) || k.length() == PAGE_PREFIX.length()) continue;
+            String v = String.valueOf(x.get(k));
+            if (v.isEmpty()) e.remove(k); else e.putString(k, v);
+        }
         e.commit();
     }
 
@@ -173,7 +186,7 @@ public class DashboardActivity extends Activity {
             // reload on remotes without a Menu key, such as the Chromecast with Google TV remote.
             web.reload();
         }
-        if (tvButton != null) tvButton.requestFocus();
+        if (tvButton != null && tvButton.getVisibility() == View.VISIBLE) tvButton.requestFocus();
     }
 
     @Override
@@ -240,12 +253,27 @@ public class DashboardActivity extends Activity {
         cm.setAcceptCookie(true);
         cm.setAcceptThirdPartyCookies(web, true);   // embedded Sheets / Looker / BI tiles sign in via iframes
 
-        // Lets the page draw its own TV button: <button onclick="TvHome.openTv()">. Opening the app
-        // grid is all it can do, so any page that ends up loaded here may call it.
+        // Lets the page draw its own TV button: <button onclick="TvHome.openTv()">, calling
+        // TvHome.useOwnButton() to hide the built-in one. Settings pushed over ADB (tokens, Wi-Fi
+        // passwords) are only handed to pages bundled in the app, never to a site it navigated to.
         web.addJavascriptInterface(new Object() {
             @JavascriptInterface
             public void openTv() {
                 runOnUiThread(DashboardActivity.this::openTv);
+            }
+
+            @JavascriptInterface
+            public void useOwnButton() {
+                runOnUiThread(() -> {
+                    tvButton.setVisibility(View.GONE);
+                    if (web != null) web.requestFocus();
+                });
+            }
+
+            @JavascriptInterface
+            public String get(String key) {
+                if (!currentUrl.startsWith(ASSET_PREFIX)) return "";
+                return prefs(DashboardActivity.this).getString(PAGE_PREFIX + key, "");
             }
         }, "TvHome");
 
@@ -253,6 +281,7 @@ public class DashboardActivity extends Activity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 mainFrameFailed = false;
+                currentUrl = url == null ? "" : url;
             }
 
             @Override
