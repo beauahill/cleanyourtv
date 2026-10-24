@@ -15,6 +15,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -36,7 +37,8 @@ import java.util.regex.Pattern;
  *
  * The screen is kept on, the page is reloaded on a timer, and a failed load retries until the
  * network comes back. Back leaves the page's history first, then returns to the home screen.
- * Menu, or reopening the Dashboard tile, reloads.
+ * Menu, or reopening the Dashboard tile, reloads. The TV button, or {@code TvHome.openTv()} from the
+ * page's own JavaScript, opens the launcher's app grid.
  */
 public class DashboardActivity extends Activity {
 
@@ -48,6 +50,11 @@ public class DashboardActivity extends Activity {
     static final String KEY_RELOAD_MIN = "dashboard_reload_minutes";
     static final String KEY_ZOOM = "dashboard_zoom_percent";
     static final String KEY_DESKTOP = "dashboard_desktop_mode";
+    static final String KEY_HOME = "dashboard_home";
+
+    /** Set on the intent that opens the app grid from here, so the grid does not bounce straight back. */
+    static final String EXTRA_FROM_DASHBOARD = "com.gathin.tvhome.FROM_DASHBOARD";
+    private static final String ASSET_PREFIX = "file:///android_asset/";
 
     private static final long RETRY_MS = 30_000L;
     private static final long MINUTE_MS = 60_000L;
@@ -55,7 +62,7 @@ public class DashboardActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private WebView web;
     private View status;
-    private TextView statusTitle, statusDetail;
+    private TextView statusTitle, statusDetail, tvButton;
     private boolean mainFrameFailed;
 
     private final Runnable retry = () -> {
@@ -77,7 +84,7 @@ public class DashboardActivity extends Activity {
 
     static boolean isConfigured(Context c) {
         String u = url(c);
-        return u.startsWith("http://") || u.startsWith("https://");
+        return u.startsWith("http://") || u.startsWith("https://") || u.startsWith(ASSET_PREFIX);
     }
 
     static String title(Context c) {
@@ -86,6 +93,12 @@ public class DashboardActivity extends Activity {
 
     static boolean autostart(Context c) {
         return prefs(c).getBoolean(KEY_AUTOSTART, c.getResources().getBoolean(R.bool.dashboard_autostart));
+    }
+
+    /** True when Home should land on the dashboard instead of the app grid. */
+    static boolean isHome(Context c) {
+        return isConfigured(c)
+                && prefs(c).getBoolean(KEY_HOME, c.getResources().getBoolean(R.bool.dashboard_home));
     }
 
     static int idleMinutes(Context c) {
@@ -104,7 +117,7 @@ public class DashboardActivity extends Activity {
 
     /**
      * Saves any of these intent extras so they survive reboots: url, title (strings); autostart,
-     * desktop (booleans); idle_minutes, reload_minutes, zoom (ints). "--ez reset true" clears them
+     * desktop, home (booleans); idle_minutes, reload_minutes, zoom (ints). "--ez reset true" clears them
      * all back to config.xml.
      */
     private void applyExtras(Intent intent) {
@@ -113,7 +126,7 @@ public class DashboardActivity extends Activity {
         SharedPreferences.Editor e = prefs(this).edit();
         if (x.getBoolean("reset", false)) {
             for (String k : new String[]{KEY_URL, KEY_TITLE, KEY_AUTOSTART, KEY_IDLE_MIN,
-                    KEY_RELOAD_MIN, KEY_ZOOM, KEY_DESKTOP}) {
+                    KEY_RELOAD_MIN, KEY_ZOOM, KEY_DESKTOP, KEY_HOME}) {
                 e.remove(k);
             }
         }
@@ -121,6 +134,7 @@ public class DashboardActivity extends Activity {
         if (x.containsKey("title")) e.putString(KEY_TITLE, String.valueOf(x.get("title")));
         if (x.containsKey("autostart")) e.putBoolean(KEY_AUTOSTART, x.getBoolean("autostart"));
         if (x.containsKey("desktop")) e.putBoolean(KEY_DESKTOP, x.getBoolean("desktop"));
+        if (x.containsKey("home")) e.putBoolean(KEY_HOME, x.getBoolean("home"));
         if (x.containsKey("idle_minutes")) e.putInt(KEY_IDLE_MIN, x.getInt("idle_minutes"));
         if (x.containsKey("reload_minutes")) e.putInt(KEY_RELOAD_MIN, x.getInt("reload_minutes"));
         if (x.containsKey("zoom")) e.putInt(KEY_ZOOM, x.getInt("zoom"));
@@ -138,7 +152,10 @@ public class DashboardActivity extends Activity {
         status = findViewById(R.id.dashStatus);
         statusTitle = findViewById(R.id.dashStatusTitle);
         statusDetail = findViewById(R.id.dashStatusDetail);
+        tvButton = findViewById(R.id.dashTvButton);
+        tvButton.setOnClickListener(v -> openTv());
         createWebView();
+        tvButton.requestFocus();
         if (savedInstanceState == null || web.restoreState(savedInstanceState) == null) load();
     }
 
@@ -156,6 +173,7 @@ public class DashboardActivity extends Activity {
             // reload on remotes without a Menu key, such as the Chromecast with Google TV remote.
             web.reload();
         }
+        if (tvButton != null) tvButton.requestFocus();
     }
 
     @Override
@@ -222,6 +240,15 @@ public class DashboardActivity extends Activity {
         cm.setAcceptCookie(true);
         cm.setAcceptThirdPartyCookies(web, true);   // embedded Sheets / Looker / BI tiles sign in via iframes
 
+        // Lets the page draw its own TV button: <button onclick="TvHome.openTv()">. Opening the app
+        // grid is all it can do, so any page that ends up loaded here may call it.
+        web.addJavascriptInterface(new Object() {
+            @JavascriptInterface
+            public void openTv() {
+                runOnUiThread(DashboardActivity.this::openTv);
+            }
+        }, "TvHome");
+
         web.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -272,7 +299,6 @@ public class DashboardActivity extends Activity {
                 return true;
             }
         });
-        web.requestFocus();
     }
 
     private void destroyWebView() {
@@ -337,8 +363,14 @@ public class DashboardActivity extends Activity {
             web.goBack();
             return;
         }
-        // Back to the launcher's home screen; the dashboard stays one click away in the dock.
-        startActivity(new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        openTv();
+    }
+
+    /** Goes to the launcher's app grid. The dashboard stays one click away in the dock, or on Home. */
+    private void openTv() {
+        startActivity(new Intent(this, MainActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(EXTRA_FROM_DASHBOARD, true));
         finish();
     }
 }

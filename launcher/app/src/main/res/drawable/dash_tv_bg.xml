@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- pill_bg with a darker resting fill, so the button stays readable over light dashboard pages. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#F5FFFFFF" />
+            <corners android:radius="21dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#B3101418" />
+            <stroke android:width="1dp" android:color="#38FFFFFF" />
+            <corners android:radius="21dp" />
+        </shape>
+    </item>
+</selector>

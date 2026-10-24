@@ -45,6 +45,11 @@ Edit `app/src/main/res/values/config.xml`:
 
 The Dashboard tile is first in `dock_apps`. It stays hidden while `dashboard_url` is empty.
 
+To ship the page inside the app instead of hosting it, put it in `app/src/main/assets/` and use
+`file:///android_asset/<file>.html` as the URL. Set `<bool name="dashboard_home">true</bool>` to make
+it the home screen. The page can draw its own TV button with `onclick="TvHome.openTv()"`; the
+built-in TV button in the bottom corner has focus when the page opens.
+
 ## 4. Install
 
 The Google TV home app on a Chromecast is `com.google.android.apps.tv.launcherx`, not the default
@@ -81,6 +86,7 @@ tools/venv/bin/python -I tools/tv.py "am start -n com.gathin.tvhome/.DashboardAc
 | `reload_minutes` | `--ei` | Reload interval. 0 is off. |
 | `zoom` | `--ei` | Initial page scale in percent. 0 fits the width. Try 75 if the layout is cramped. |
 | `desktop` | `--ez` | Request the desktop layout instead of the phone layout. On by default. |
+| `home` | `--ez` | Make the dashboard the home screen: Home opens it, and its **TV** button (or Back) opens the app grid. |
 | `reset` | `--ez` | `true` drops all pushed values and goes back to `config.xml`. |
 
 Only the ADB shell can do this. Other apps on the TV cannot change the URL.

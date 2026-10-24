@@ -20,5 +20,6 @@
     <string name="dashboard_offline">Dashboard unavailable</string>
     <string name="dashboard_retrying">Retrying in 30 seconds</string>
     <string name="dashboard_not_set">No dashboard set</string>
+    <string name="dashboard_tv_button">TV</string>
     <string name="dashboard_not_set_detail">Set dashboard_url in config.xml, or push one over ADB with\nam start -n com.gathin.tvhome/.DashboardActivity --es url https://…</string>
 </resources>

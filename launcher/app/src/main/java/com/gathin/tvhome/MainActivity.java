@@ -214,7 +214,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             }
         });
 
-        if (savedInstanceState == null) maybeAutostartDashboard();
+        if (savedInstanceState == null && !maybeHomeToDashboard(getIntent())) maybeAutostartDashboard();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        maybeHomeToDashboard(intent);
     }
 
     @Override
@@ -228,6 +235,18 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     // ---- web dashboard ---------------------------------------------------------------------------
+
+    /**
+     * When the dashboard is the home screen (dashboard_home), sends the Home button there. The app grid
+     * still opens from the dashboard's TV button, which marks its intent so it is not bounced back.
+     */
+    private boolean maybeHomeToDashboard(Intent intent) {
+        if (intent == null || !intent.hasCategory(Intent.CATEGORY_HOME)) return false;
+        if (intent.getBooleanExtra(DashboardActivity.EXTRA_FROM_DASHBOARD, false)) return false;
+        if (!DashboardActivity.isHome(this)) return false;
+        DashboardActivity.open(this);
+        return true;
+    }
 
     /** Opens the dashboard once per boot when dashboard_autostart is on (bar and lobby TVs). */
     private void maybeAutostartDashboard() {

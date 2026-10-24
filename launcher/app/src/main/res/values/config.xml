@@ -32,8 +32,11 @@
       Every value below can also be changed on the TV over ADB without rebuilding: see
       "Web dashboard" in launcher/DASHBOARD.md.
     -->
-    <!-- http(s) address of the dashboard. Leave empty to hide the Dashboard tile. -->
+    <!-- http(s) address of the dashboard, or a page bundled in app/src/main/assets as
+         file:///android_asset/<path>. Leave empty to hide the Dashboard tile. -->
     <string name="dashboard_url" translatable="false"></string>
+    <!-- Make the dashboard the home screen: Home opens it, and its TV button opens the app grid. -->
+    <bool name="dashboard_home">false</bool>
     <!-- Shown while the page loads. -->
     <string name="dashboard_title" translatable="false">STR Dashboard</string>
     <!-- Open the dashboard by itself once after every boot (bar / lobby TVs). -->

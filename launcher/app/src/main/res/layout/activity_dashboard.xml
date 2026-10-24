@@ -36,4 +36,15 @@
             android:textColor="#99FFFFFF"
             android:textSize="18sp" />
     </LinearLayout>
+
+    <!-- "TV" button: leaves the dashboard for the launcher's app grid. Focused when the page opens. -->
+    <TextView
+        android:id="@+id/dashTvButton"
+        style="@style/TopButton"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="28dp"
+        android:background="@drawable/dash_tv_bg"
+        android:drawableStart="@drawable/ic_livetv"
+        android:focusable="true"
+        android:text="@string/dashboard_tv_button" />
 </FrameLayout>
