@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laradise</title>
+<!--
+  LARADISE KIOSK DASHBOARD
+  Single-file guest dashboard for a 10" Fire tablet, backed by Home Assistant.
+
+  QUICK START
+  1. Fill in CONFIG below: HA token, entity IDs, real WiFi creds, trash schedule.
+  2. Copy this file to /config/www/ on the HA VM.
+     It will be served at:  http://<ha-ip>:8123/local/laradise-dashboard.html
+     (haUrl can stay "" when served from HA itself, it auto-detects.)
+  3. On the Fire tablet, install Fully Kiosk Browser and set that URL as the
+     start URL. Keep screen on, disable screensaver.
+  4. Token tip: create a separate NON-ADMIN HA user and generate the
+     long-lived token from that account. Anyone on the guest LAN who finds
+     this URL can read the token in the page source.
+
+  With token left blank the page runs in DEMO mode with fake data so you can
+  preview the design.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="qrcode.min.js"></script>
+<style>
+  :root{
+    --bg:#161b16;
+    --card:#202920;
+    --card-raised:#273127;
+    --line:#33402f;
+    --cream:#efe5d0;
+    --muted:#a79e87;
+    --faint:#7b7563;
+    --brass:#d2a24c;
+    --brass-dim:#8a6c34;
+    --sage:#8da986;
+    --cool:#8fb0b5;
+    --terra:#c47a55;
+    --ink:#131711;
+    --radius:12px;
+    --serif:"Fraunces", Georgia, "Times New Roman", serif;
+    --sans:"Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html{font-size:clamp(13px, 1.05vw, 18px);}
+  body{
+    background:var(--bg);
+    color:var(--cream);
+    font-family:var(--sans);
+    height:100vh; width:100vw;
+    overflow:hidden;
+    user-select:none; -webkit-user-select:none;
+    overscroll-behavior:none;
+  }
+  #app{
+    height:100%;
+    display:flex; flex-direction:column;
+    padding:1.6rem 1.9rem 1.9rem;
+    gap:1.1rem;
+  }
+
+  /* ============ HEADER ============ */
+  header{display:flex; align-items:flex-end; justify-content:space-between; gap:1.5rem; position:relative;}
+  .tvbtn{
+    position:absolute; left:50%; top:.3rem; transform:translateX(-50%);
+    display:flex; align-items:center; gap:.55rem;
+    padding:.6rem 1.25rem; border-radius:999px;
+    background:var(--card); color:var(--cream);
+    border:2px solid var(--brass-dim);
+    font-family:var(--sans); font-size:.9rem; font-weight:600; letter-spacing:.04em;
+    cursor:pointer; outline:none;
+    transition:background .15s, color .15s, border-color .15s, transform .15s;
+  }
+  .tvbtn svg{width:1.1rem; height:1.1rem; fill:currentColor;}
+  .tvbtn:focus{background:var(--brass); border-color:var(--brass); color:var(--ink); transform:translateX(-50%) scale(1.06);}
+  .brand h1{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:2.9rem;
+    letter-spacing:.01em;
+    line-height:1;
+  }
+  .brand .sub{
+    margin-top:.5rem;
+    display:flex; align-items:center; gap:.65rem;
+    font-size:.68rem; font-weight:600;
+    letter-spacing:.22em; text-transform:uppercase;
+    color:var(--muted);
+  }
+  .sub .sq{width:.42rem; height:.42rem; background:var(--brass);}
+  .timeblock{text-align:right;}
+  .clock{
+    font-family:var(--serif); font-weight:600;
+    font-size:3.2rem; line-height:1;
+    font-variant-numeric:tabular-nums;
+  }
+  .clock .ampm{font-size:1.15rem; font-weight:500; color:var(--muted); margin-left:.35rem;}
+  .date{margin-top:.4rem; font-size:.95rem; color:var(--muted); font-weight:500;}
+
+  /* craftsman tile divider, signature element */
+  .tilerow{display:flex; gap:.55rem; align-items:center;}
+  .tilerow .tile{width:.55rem; height:.55rem; background:var(--line);}
+  .tilerow .tile.lit{background:var(--brass);}
+  #connTile{transition:background .4s;}
+  .connlabel{font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); font-weight:600; margin-left:.35rem;}
+
+  /* ============ GRID ============ */
+  .grid{
+    flex:1; min-height:0;
+    display:grid;
+    grid-template-columns:repeat(12, 1fr);
+    grid-template-rows:repeat(2, 1fr);
+    gap:1.1rem;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:1.25rem 1.4rem;
+    display:flex; flex-direction:column;
+    min-height:0; overflow:hidden;
+  }
+  .card-eyebrow{
+    display:flex; align-items:center; gap:.6rem;
+    font-size:.7rem; font-weight:700;
+    letter-spacing:.2em; text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:.9rem;
+    flex-shrink:0;
+  }
+  .card-eyebrow::before{content:""; width:.5rem; height:.5rem; background:var(--brass); flex-shrink:0;}
+  .card-eyebrow svg{width:1.05rem; height:1.05rem; fill:var(--muted); margin-left:auto;}
+
+  #climateCol{grid-column:span 4; grid-row:span 2; display:flex; flex-direction:column; gap:1.1rem;}
+  #weatherCard{grid-column:span 5;}
+  #wifiCard{grid-column:span 3;}
+  #trashCard{grid-column:span 4;}
+  #notesCard{grid-column:span 4;}
+  body.noclimate #climateCol{display:none;}
+  body.noclimate #weatherCard{grid-column:span 8;}
+  body.noclimate #wifiCard{grid-column:span 4;}
+  body.noclimate #trashCard, body.noclimate #notesCard{grid-column:span 6;}
+
+  /* ============ CLIMATE ============ */
+  .clim{flex:1;}
+  .clim-body{flex:1; display:flex; flex-direction:column; justify-content:space-between; min-height:0;}
+  .clim-now{display:flex; align-items:baseline; gap:.9rem; flex-wrap:wrap;}
+  .clim-temp{
+    font-family:var(--serif); font-weight:600;
+    font-size:clamp(3.6rem, 5.2vw, 5.4rem);
+    line-height:.95;
+    font-variant-numeric:tabular-nums;
+  }
+  .clim-temp .deg{font-size:.45em; vertical-align:.7em; color:var(--muted); font-weight:500;}
+  .action-chip{
+    font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+    padding:.4rem .7rem; border-radius:6px;
+    background:var(--card-raised); color:var(--muted);
+    border:1px solid var(--line);
+  }
+  .action-chip.heating{color:var(--brass); border-color:var(--brass-dim);}
+  .action-chip.cooling{color:var(--cool); border-color:#4e6a6e;}
+  .action-chip.drying, .action-chip.fan{color:var(--sage); border-color:#4d6349;}
+
+  .setrow{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:.8rem; margin:1.1rem 0;
+  }
+  .setbtn{
+    width:4.1rem; height:4.1rem;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--card-raised);
+    color:var(--brass);
+    font-family:var(--serif); font-size:2rem; font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition:transform .08s, background .15s;
+  }
+  .setbtn:active{transform:scale(.94); background:#2e3a2e;}
+  .settarget{text-align:center;}
+  .settarget .val{
+    font-family:var(--serif); font-weight:600;
+    font-size:2.7rem; line-height:1;
+    font-variant-numeric:tabular-nums;
+  }
+  .settarget .lbl{font-size:.68rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-top:.3rem;}
+
+  .modes{display:flex; flex-wrap:wrap; gap:.55rem;}
+  .modebtn{
+    flex:1; min-width:4.2rem;
+    padding:.75rem .5rem;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--muted);
+    font-family:var(--sans); font-size:.82rem; font-weight:600;
+    letter-spacing:.04em;
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .modebtn.active{background:var(--brass); border-color:var(--brass); color:var(--ink);}
+  .modebtn:active{transform:scale(.96);}
+  .clim-offline{color:var(--terra); font-size:.85rem; font-weight:500; margin-top:.6rem;}
+
+  /* ============ WEATHER ============ */
+  .wx-body{flex:1; display:flex; gap:1.4rem; min-height:0; align-items:stretch;}
+  .wx-now{display:flex; flex-direction:column; justify-content:center; gap:.35rem; min-width:38%;}
+  .wx-nowtop{display:flex; align-items:center; gap:1rem;}
+  .wx-nowtop svg{width:3.4rem; height:3.4rem; fill:var(--brass); flex-shrink:0;}
+  .wx-temp{
+    font-family:var(--serif); font-weight:600;
+    font-size:clamp(2.8rem, 3.6vw, 3.8rem); line-height:1;
+    font-variant-numeric:tabular-nums;
+  }
+  .wx-temp .deg{font-size:.5em; vertical-align:.6em; color:var(--muted);}
+  .wx-cond{font-size:1rem; color:var(--cream); font-weight:500;}
+  .wx-hilo{font-size:.85rem; color:var(--muted); font-weight:500;}
+  .wx-forecast{
+    flex:1; display:flex; gap:.6rem;
+    border-left:1px solid var(--line);
+    padding-left:1.4rem;
+  }
+  .wx-day{
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:.55rem;
+  }
+  .wx-day .d{font-size:.7rem; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);}
+  .wx-day svg{width:1.9rem; height:1.9rem; fill:var(--cream);}
+  .wx-day .hi{font-size:1.05rem; font-weight:600; font-variant-numeric:tabular-nums;}
+  .wx-day .lo{font-size:.85rem; color:var(--faint); font-weight:500; font-variant-numeric:tabular-nums;}
+
+  /* ============ WIFI ============ */
+  .wifi-body{flex:1; display:flex; gap:1.1rem; align-items:center; min-height:0;}
+  .wifi-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:.85rem;}
+  .wifi-field .k{font-size:.66rem; letter-spacing:.18em; text-transform:uppercase; color:var(--faint); font-weight:700; margin-bottom:.25rem;}
+  .wifi-field .v{
+    font-family:var(--serif); font-weight:600;
+    font-size:1.35rem; line-height:1.15;
+    overflow-wrap:anywhere;
+  }
+  .wifi-field .v.pass{letter-spacing:.06em;}
+  .qrwrap{
+    background:#f5efe2;
+    padding:.55rem; border-radius:10px;
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .qrhint{font-size:.62rem; color:var(--faint); text-align:center; margin-top:.4rem; letter-spacing:.08em; text-transform:uppercase; font-weight:600;}
+
+  /* ============ TRASH ============ */
+  .trash-body{flex:1; display:flex; flex-direction:column; justify-content:center; gap:1rem; min-height:0;}
+  .pickup{display:flex; align-items:center; gap:1rem;}
+  .pickup .icon{
+    width:3rem; height:3rem; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .pickup .icon svg{width:1.6rem; height:1.6rem;}
+  .pickup.trash .icon{background:rgba(210,162,76,.13);} .pickup.trash .icon svg{fill:var(--brass);}
+  .pickup.recycle .icon{background:rgba(141,169,134,.13);} .pickup.recycle .icon svg{fill:var(--sage);}
+  .pickup .info{min-width:0;}
+  .pickup .day{font-family:var(--serif); font-weight:600; font-size:1.55rem; line-height:1.1;}
+  .pickup .when{font-size:.82rem; color:var(--muted); font-weight:500; margin-top:.15rem;}
+  .trash-note{font-size:.8rem; color:var(--faint); font-weight:500; border-top:1px solid var(--line); padding-top:.8rem;}
+
+  /* ============ NOTES ============ */
+  .notes-body{flex:1; display:flex; flex-direction:column; min-height:0;}
+  .checkout{display:flex; align-items:baseline; gap:.6rem; margin-bottom:.95rem;}
+  .checkout .t{font-family:var(--serif); font-weight:600; font-size:1.9rem; color:var(--brass); line-height:1;}
+  .checkout .l{font-size:.8rem; color:var(--muted); font-weight:600; letter-spacing:.06em;}
+  .notelist{list-style:none; display:flex; flex-direction:column; gap:.6rem; overflow:hidden;}
+  .notelist li{
+    display:flex; gap:.65rem; align-items:baseline;
+    font-size:.92rem; line-height:1.4; color:var(--cream); font-weight:450;
+  }
+  .notelist li::before{content:""; width:.4rem; height:.4rem; background:var(--line); flex-shrink:0; transform:translateY(-.1rem);}
+
+  /* ============ NIGHT DIM ============ */
+  #nightdim{
+    position:fixed; inset:0; background:#000;
+    opacity:0; pointer-events:none;
+    transition:opacity 2.5s ease;
+    z-index:50;
+  }
+
+  /* ============ PORTRAIT FALLBACK ============ */
+  @media (orientation:portrait){
+    body{overflow-y:auto;}
+    #app{height:auto; min-height:100%;}
+    .grid{display:flex; flex-direction:column;}
+    #climateCol{order:1;} #weatherCard{order:2;} #wifiCard{order:3;} #trashCard{order:4;} #notesCard{order:5;}
+    .card{min-height:11rem;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">
+      <h1>Laradise</h1>
+      <div class="sub">
+        <span class="sq"></span><span>Est. 1934</span>
+        <span class="sq"></span><span>Laramie, Wyoming</span>
+      </div>
+    </div>
+    <button class="tvbtn" id="tvBtn"><svg viewBox="0 0 24 24"><path d="M4 5h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-6v1.5h3V21H7v-1.5h3V18H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm0 2v9h16V7z"/></svg>Watch TV</button>
+    <div class="timeblock">
+      <div class="clock"><span id="clockTime">--:--</span><span class="ampm" id="clockAmpm"></span></div>
+      <div class="date" id="clockDate"></div>
+      <div class="tilerow" style="justify-content:flex-end; margin-top:.55rem;">
+        <span class="tile"></span><span class="tile"></span><span class="tile"></span>
+        <span class="tile" id="connTile"></span>
+        <span class="connlabel" id="connLabel">starting</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div id="climateCol"></div>
+
+    <div class="card" id="weatherCard">
+      <div class="card-eyebrow"><span>Outside</span></div>
+      <div class="wx-body">
+        <div class="wx-now">
+          <div class="wx-nowtop">
+            <span id="wxIcon"></span>
+            <span class="wx-temp"><span id="wxTemp">--</span><span class="deg">&deg;</span></span>
+          </div>
+          <div class="wx-cond" id="wxCond">Waiting for data</div>
+          <div class="wx-hilo" id="wxHilo"></div>
+        </div>
+        <div class="wx-forecast" id="wxForecast"></div>
+      </div>
+    </div>
+
+    <div class="card" id="wifiCard">
+      <div class="card-eyebrow"><span>Join the WiFi</span></div>
+      <div class="wifi-body">
+        <div class="wifi-text">
+          <div class="wifi-field"><div class="k">Network</div><div class="v" id="wifiSsid"></div></div>
+          <div class="wifi-field"><div class="k">Password</div><div class="v pass" id="wifiPass"></div></div>
+        </div>
+        <div>
+          <div class="qrwrap"><div id="qr"></div></div>
+          <div class="qrhint">Scan to join</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="trashCard">
+      <div class="card-eyebrow"><span>Trash &amp; Recycling</span></div>
+      <div class="trash-body">
+        <div class="pickup trash">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12.2A2 2 0 0 1 15 22H9a2 2 0 0 1-2-1.8L6 8z"/><rect x="4.5" y="4.8" width="15" height="2.4" rx="1.2"/><path d="M9.5 4.8 10 3.3A1.4 1.4 0 0 1 11.3 2.3h1.4A1.4 1.4 0 0 1 14 3.3l.5 1.5z"/></svg></div>
+          <div class="info"><div class="day" id="trashDay">--</div><div class="when" id="trashWhen"></div></div>
+        </div>
+        <div class="pickup recycle">
+          <div class="icon"><svg viewBox="0 0 24 24"><g><path d="M12 2.6 15.6 8.8H8.4z"/></g><g transform="rotate(120 12 12)"><path d="M12 2.6 15.6 8.8H8.4z"/></g><g transform="rotate(240 12 12)"><path d="M12 2.6 15.6 8.8H8.4z"/></g></svg></div>
+          <div class="info"><div class="day" id="recycleDay">--</div><div class="when" id="recycleWhen"></div></div>
+        </div>
+        <div class="trash-note" id="trashNote"></div>
+      </div>
+    </div>
+
+    <div class="card" id="notesCard">
+      <div class="card-eyebrow"><span>Good to Know</span></div>
+      <div class="notes-body">
+        <div class="checkout"><span class="t" id="checkoutTime"></span><span class="l">checkout</span></div>
+        <ul class="notelist" id="noteList"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="nightdim"></div>
+
+<script>
+/* ================================================================
+   CONFIG - everything you edit lives here
+   ================================================================ */
+const CONFIG = {
+  // Leave "" when this file is served from HA at /local/ (auto-detects).
+  // Otherwise set it, e.g. "http://192.168.1.50:8123"
+  haUrl: "",
+
+  // Long-lived access token. Leave "" for demo mode.
+  // Make it from a dedicated non-admin HA user: Profile > Security > tokens.
+  token: "",
+
+  // One or more climate entities. Find IDs in Developer Tools > States.
+  climate: [
+    { entity: "climate.laradise_mini_split", label: "Mini Split" },
+    // { entity: "climate.sensi_thermostat", label: "Furnace" },
+  ],
+
+  // Where the forecast comes from while Home Assistant isn't connected (Open-Meteo, no key).
+  location: { lat: 41.3114, lon: -105.5911, tz: "America/Denver" },
+
+  // Weather entity for current conditions + forecast.
+  weatherEntity: "weather.forecast_home",
+
+  wifi: {
+    ssid: "OGTHGuest",
+    password: "GoWYO758",
+  },
+
+  // Weekdays: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
+  trash: { weekday: 4 },
+  // Biweekly recycling: anchorDate must be a known past pickup date.
+  recycling: { weekday: 4, anchorDate: "2026-08-06", everyNWeeks: 2 },
+  trashNote: "Bins live on the alley side. Out the night before, back by evening.",
+
+  checkout: "11:00 AM",
+  notes: [
+    "Quiet hours 10 PM to 8 AM",
+    "Extra blankets in the hall closet",
+    "Towels: main bath cabinets, and laid out downstairs",
+    "Questions? Text Beau at 307-761-2353",
+  ],
+
+  // Guests can only move the setpoint inside this range.
+  setpointMin: 62,
+  setpointMax: 78,
+
+  // Dim the panel overnight. Any touch wakes it for 45 s.
+  nightDim: { enabled: true, start: 22, end: 7, level: 0.55 },
+};
+
+/* ================================================================
+   WEATHER ICONS - solid filled shapes
+   ================================================================ */
+const ICONS = {
+  sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.6"/><g><rect x="11.1" y="1.4" width="1.8" height="3.4" rx=".9"/><rect x="11.1" y="19.2" width="1.8" height="3.4" rx=".9"/><rect x="1.4" y="11.1" width="3.4" height="1.8" rx=".9"/><rect x="19.2" y="11.1" width="3.4" height="1.8" rx=".9"/></g><g transform="rotate(45 12 12)"><rect x="11.1" y="1.4" width="1.8" height="3.4" rx=".9"/><rect x="11.1" y="19.2" width="1.8" height="3.4" rx=".9"/><rect x="1.4" y="11.1" width="3.4" height="1.8" rx=".9"/><rect x="19.2" y="11.1" width="3.4" height="1.8" rx=".9"/></g></svg>',
+  moon: '<svg viewBox="0 0 24 24"><path d="M20.6 14.8A8.8 8.8 0 0 1 9.2 3.4 8.8 8.8 0 1 0 20.6 14.8z"/></svg>',
+  cloud: '<svg viewBox="0 0 24 24"><path d="M6.6 18.5a4.1 4.1 0 0 1-.6-8.15A6.4 6.4 0 0 1 18.5 9.4a4.3 4.3 0 0 1-1 9.1z"/></svg>',
+  partly: '<svg viewBox="0 0 24 24"><circle cx="8" cy="7.6" r="3.1"/><g><rect x="7.3" y="1" width="1.4" height="2.3" rx=".7"/><rect x="1.4" y="6.9" width="2.3" height="1.4" rx=".7"/><rect x="2.9" y="2.9" width="1.4" height="2.3" rx=".7" transform="rotate(-45 3.6 4)"/></g><path d="M9.6 20.5a3.6 3.6 0 0 1-.5-7.2 5.6 5.6 0 0 1 10.9-.8 3.8 3.8 0 0 1-.9 8z"/></svg>',
+  rain: '<svg viewBox="0 0 24 24"><path d="M6.9 15.4a3.8 3.8 0 0 1-.55-7.55A5.9 5.9 0 0 1 17.9 7a4 4 0 0 1-.95 8.4z"/><rect x="7" y="17" width="1.7" height="4.6" rx=".85" transform="rotate(16 7.85 19.3)"/><rect x="11.4" y="17.4" width="1.7" height="4.6" rx=".85" transform="rotate(16 12.25 19.7)"/><rect x="15.7" y="17" width="1.7" height="4.6" rx=".85" transform="rotate(16 16.55 19.3)"/></svg>',
+  snow: '<svg viewBox="0 0 24 24"><path d="M6.9 15.4a3.8 3.8 0 0 1-.55-7.55A5.9 5.9 0 0 1 17.9 7a4 4 0 0 1-.95 8.4z"/><circle cx="8" cy="19" r="1.25"/><circle cx="12.2" cy="21" r="1.25"/><circle cx="16.4" cy="19" r="1.25"/></svg>',
+  storm: '<svg viewBox="0 0 24 24"><path d="M6.9 14.2a3.8 3.8 0 0 1-.55-7.55A5.9 5.9 0 0 1 17.9 5.8a4 4 0 0 1-.95 8.4z"/><path d="M12.6 12.6 8.9 18.6h2.7L10.2 23l5.6-6.8h-3z"/></svg>',
+  fog: '<svg viewBox="0 0 24 24"><path d="M6.9 12.6a3.6 3.6 0 0 1-.5-7.2 5.6 5.6 0 0 1 10.9-.8 3.8 3.8 0 0 1-.9 8z"/><rect x="4" y="15" width="16" height="1.8" rx=".9"/><rect x="6" y="18.4" width="12" height="1.8" rx=".9"/></svg>',
+  wind: '<svg viewBox="0 0 24 24"><rect x="2.5" y="6.2" width="14" height="2" rx="1"/><rect x="4.5" y="11" width="17" height="2" rx="1"/><rect x="7" y="15.8" width="11" height="2" rx="1"/></svg>',
+};
+const CONDITION_ICON = {
+  "sunny":"sun","clear-night":"moon","partlycloudy":"partly","cloudy":"cloud",
+  "rainy":"rain","pouring":"rain","lightning":"storm","lightning-rainy":"storm",
+  "snowy":"snow","snowy-rainy":"snow","hail":"snow","fog":"fog",
+  "windy":"wind","windy-variant":"wind","exceptional":"sun",
+};
+const CONDITION_LABEL = {
+  "sunny":"Sunny","clear-night":"Clear","partlycloudy":"Partly cloudy","cloudy":"Cloudy",
+  "rainy":"Rain","pouring":"Heavy rain","lightning":"Thunderstorms","lightning-rainy":"Thunderstorms",
+  "snowy":"Snow","snowy-rainy":"Wintry mix","hail":"Hail","fog":"Fog",
+  "windy":"Windy","windy-variant":"Windy","exceptional":"Clear",
+};
+const MODE_LABEL = {off:"Off", heat:"Heat", cool:"Cool", dry:"Dry", fan_only:"Fan", auto:"Auto", heat_cool:"Auto"};
+const ACTION_LABEL = {heating:"Heating", cooling:"Cooling", drying:"Drying", fan:"Fan", idle:"Idle", off:"Off"};
+
+/* ================================================================
+   STATE + HA CONNECTION
+   ================================================================ */
+const S = {};                 // entity_id -> {s: state, a: attributes}
+let ws = null, msgId = 0, retryMs = 2000;
+const pending = {};           // msgId -> handler
+const demo = !CONFIG.token;
+
+function setConn(mode){
+  const tile = document.getElementById("connTile");
+  const label = document.getElementById("connLabel");
+  const map = {
+    live:    ["var(--sage)",  "live"],
+    demo:    ["var(--brass)", "demo"],
+    offline: ["var(--terra)", "offline"],
+    auth:    ["var(--terra)", "check token"],
+    starting:["var(--line)",  "starting"],
+    weather: ["var(--sage)",  "online"],
+  };
+  const [color, text] = map[mode] || map.starting;
+  tile.style.background = color;
+  label.textContent = text;
+}
+
+function wsUrl(){
+  if (CONFIG.haUrl) return CONFIG.haUrl.replace(/^http/, "ws") + "/api/websocket";
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  return proto + "://" + location.host + "/api/websocket";
+}
+
+function connect(){
+  if (demo) { startOpenMeteo(); return; }
+  setConn("starting");
+  try { ws = new WebSocket(wsUrl()); }
+  catch(e){ setConn("offline"); scheduleRetry(); return; }
+
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data);
+    if (msg.type === "auth_required"){
+      ws.send(JSON.stringify({type:"auth", access_token: CONFIG.token}));
+    } else if (msg.type === "auth_ok"){
+      retryMs = 2000;
+      setConn("live");
+      subscribeEntities();
+      fetchForecast();
+    } else if (msg.type === "auth_invalid"){
+      setConn("auth");
+    } else if (msg.type === "event" && msg.event){
+      handleEntityEvent(msg.event);
+    } else if (msg.type === "result" && pending[msg.id]){
+      pending[msg.id](msg); delete pending[msg.id];
+    }
+  };
+  ws.onclose = () => { setConn("offline"); scheduleRetry(); };
+  ws.onerror = () => { try{ws.close();}catch(e){} };
+}
+function scheduleRetry(){
+  setTimeout(connect, retryMs);
+  retryMs = Math.min(retryMs * 1.6, 30000);
+}
+function send(obj, handler){
+  if (!ws || ws.readyState !== 1) return;
+  obj.id = ++msgId;
+  if (handler) pending[obj.id] = handler;
+  ws.send(JSON.stringify(obj));
+}
+
+function trackedEntities(){
+  const ids = CONFIG.climate.map(c => c.entity);
+  if (CONFIG.weatherEntity) ids.push(CONFIG.weatherEntity);
+  return ids;
+}
+function subscribeEntities(){
+  send({type:"subscribe_entities", entity_ids: trackedEntities()});
+}
+function handleEntityEvent(ev){
+  if (ev.a) for (const [id, e] of Object.entries(ev.a)){ S[id] = {s:e.s, a:e.a||{}}; renderEntity(id); }
+  if (ev.c) for (const [id, e] of Object.entries(ev.c)){
+    const plus = e["+"] || {};
+    if (!S[id]) S[id] = {s:null, a:{}};
+    if (plus.s !== undefined) S[id].s = plus.s;
+    if (plus.a) S[id].a = {...S[id].a, ...plus.a};
+    renderEntity(id);
+  }
+  if (ev.r) for (const id of ev.r){ delete S[id]; renderEntity(id); }
+}
+function callService(domain, service, data, entityId){
+  send({type:"call_service", domain, service, service_data:data, target:{entity_id:entityId}});
+}
+
+/* ---- forecast via weather.get_forecasts ---- */
+let forecast = [];
+function fetchForecast(){
+  if (!CONFIG.weatherEntity) return;
+  send({
+    type:"call_service", domain:"weather", service:"get_forecasts",
+    service_data:{type:"daily"}, target:{entity_id: CONFIG.weatherEntity},
+    return_response:true,
+  }, (msg) => {
+    const r = msg.result && msg.result.response && msg.result.response[CONFIG.weatherEntity];
+    forecast = (r && r.forecast) ? r.forecast : [];
+    renderWeather();
+  });
+}
+setInterval(() => { if (!demo && ws && ws.readyState === 1) fetchForecast(); }, 30*60*1000);
+
+/* ================================================================
+   RENDERING
+   ================================================================ */
+function renderEntity(id){
+  if (id === CONFIG.weatherEntity) renderWeather();
+  if (CONFIG.climate.some(c => c.entity === id)) renderClimateCard(id);
+}
+
+/* ---- climate ---- */
+const localTarget = {};       // entity -> pending setpoint while debouncing
+const targetTimers = {};
+
+function buildClimateCards(){
+  const col = document.getElementById("climateCol");
+  col.innerHTML = "";
+  for (const c of CONFIG.climate){
+    const card = document.createElement("div");
+    card.className = "card clim";
+    card.id = "clim-" + cssId(c.entity);
+    card.innerHTML =
+      '<div class="card-eyebrow"><span>' + esc(c.label) + '</span>' +
+      '<svg viewBox="0 0 24 24"><path d="M14 13.4V5a2.6 2.6 0 0 0-5.2 0v8.4a4.6 4.6 0 1 0 5.2 0z"/></svg></div>' +
+      '<div class="clim-body">' +
+        '<div>' +
+          '<div class="clim-now"><span class="clim-temp"><span class="cur">--</span><span class="deg">&deg;</span></span>' +
+          '<span class="action-chip">--</span></div>' +
+          '<div class="clim-offline" style="display:none;">Unit is offline right now</div>' +
+        '</div>' +
+        '<div class="setrow">' +
+          '<button class="setbtn" data-d="-1">&minus;</button>' +
+          '<div class="settarget"><div class="val">--</div><div class="lbl">Set to</div></div>' +
+          '<button class="setbtn" data-d="1">+</button>' +
+        '</div>' +
+        '<div class="modes"></div>' +
+      '</div>';
+    col.appendChild(card);
+    card.querySelectorAll(".setbtn").forEach(btn => {
+      btn.addEventListener("click", () => bumpTarget(c.entity, parseInt(btn.dataset.d, 10)));
+    });
+  }
+}
+function bumpTarget(entity, delta){
+  const ent = S[entity];
+  const base = localTarget[entity] ?? (ent && ent.a.temperature);
+  if (base == null) return;
+  let t = Math.round(base) + delta;
+  t = Math.min(CONFIG.setpointMax, Math.max(CONFIG.setpointMin, t));
+  localTarget[entity] = t;
+  renderClimateCard(entity);
+  clearTimeout(targetTimers[entity]);
+  targetTimers[entity] = setTimeout(() => {
+    if (!demo) callService("climate", "set_temperature", {temperature: t}, entity);
+    else if (S[entity]) { S[entity].a.temperature = t; }
+    delete localTarget[entity];
+  }, 1200);
+}
+function setMode(entity, mode){
+  if (!demo) callService("climate", "set_hvac_mode", {hvac_mode: mode}, entity);
+  else if (S[entity]) {
+    S[entity].s = mode;
+    S[entity].a.hvac_action = mode === "off" ? "off" : (mode === "heat" ? "heating" : mode === "cool" ? "cooling" : "idle");
+    renderClimateCard(entity);
+  }
+}
+function renderClimateCard(entity){
+  const card = document.getElementById("clim-" + cssId(entity));
+  if (!card) return;
+  const ent = S[entity];
+  const cur = card.querySelector(".cur");
+  const chip = card.querySelector(".action-chip");
+  const off = card.querySelector(".clim-offline");
+  const tval = card.querySelector(".settarget .val");
+  const modesEl = card.querySelector(".modes");
+  const setrow = card.querySelector(".setrow");
+
+  if (!ent || ent.s === "unavailable" || ent.s === "unknown"){
+    cur.textContent = "--"; chip.textContent = "--"; chip.className = "action-chip";
+    off.style.display = ""; setrow.style.visibility = "hidden"; modesEl.innerHTML = "";
+    return;
+  }
+  off.style.display = "none"; setrow.style.visibility = "";
+
+  const a = ent.a;
+  cur.textContent = a.current_temperature != null ? Math.round(a.current_temperature) : "--";
+
+  const action = a.hvac_action || (ent.s === "off" ? "off" : "idle");
+  chip.textContent = ACTION_LABEL[action] || action;
+  chip.className = "action-chip " + action;
+
+  const target = localTarget[entity] ?? a.temperature;
+  if (target != null){ tval.textContent = Math.round(target) + "\u00B0"; setrow.style.display = ""; }
+  else { setrow.style.display = "none"; }
+
+  const modes = a.hvac_modes || [];
+  modesEl.innerHTML = "";
+  for (const m of modes){
+    const b = document.createElement("button");
+    b.className = "modebtn" + (ent.s === m ? " active" : "");
+    b.textContent = MODE_LABEL[m] || m;
+    b.addEventListener("click", () => setMode(entity, m));
+    modesEl.appendChild(b);
+  }
+}
+
+/* ---- weather ---- */
+function renderWeather(){
+  const ent = S[CONFIG.weatherEntity];
+  const iconEl = document.getElementById("wxIcon");
+  if (ent && ent.s && ent.s !== "unavailable"){
+    document.getElementById("wxTemp").textContent = Math.round(ent.a.temperature ?? 0);
+    document.getElementById("wxCond").textContent = CONDITION_LABEL[ent.s] || cap(ent.s);
+    iconEl.innerHTML = ICONS[CONDITION_ICON[ent.s] || "cloud"];
+    iconEl.firstChild.style.width = "3.4rem"; iconEl.firstChild.style.height = "3.4rem";
+    iconEl.firstChild.style.fill = "var(--brass)";
+  }
+  const fEl = document.getElementById("wxForecast");
+  fEl.innerHTML = "";
+  const days = forecast.slice(0, 4);
+  if (days.length && days[0].temperature != null){
+    const lo = days[0].templow != null ? Math.round(days[0].templow) : null;
+    document.getElementById("wxHilo").textContent =
+      "High " + Math.round(days[0].temperature) + "\u00B0" + (lo != null ? " \u00B7 Low " + lo + "\u00B0" : "");
+  }
+  for (const d of days){
+    const day = new Date(d.datetime);
+    const el = document.createElement("div");
+    el.className = "wx-day";
+    const key = CONDITION_ICON[d.condition] || "cloud";
+    el.innerHTML =
+      '<span class="d">' + day.toLocaleDateString(undefined, {weekday:"short"}) + '</span>' +
+      ICONS[key] +
+      '<span class="hi">' + Math.round(d.temperature) + '\u00B0</span>' +
+      '<span class="lo">' + (d.templow != null ? Math.round(d.templow) + "\u00B0" : "") + '</span>';
+    fEl.appendChild(el);
+  }
+}
+
+/* ---- static cards ---- */
+function renderStatics(){
+  document.getElementById("wifiSsid").textContent = CONFIG.wifi.ssid;
+  document.getElementById("wifiPass").textContent = CONFIG.wifi.password;
+  try {
+    const escQR = s => s.replace(/([\\;,:"'])/g, "\\$1");
+    new QRCode(document.getElementById("qr"), {
+      text: "WIFI:T:WPA;S:" + escQR(CONFIG.wifi.ssid) + ";P:" + escQR(CONFIG.wifi.password) + ";;",
+      width: 118, height: 118,
+      colorDark: "#1c221b", colorLight: "#f5efe2",
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  } catch(e){
+    const w = document.querySelector(".qrwrap"); if (w) w.parentElement.style.display = "none";
+  }
+  document.getElementById("trashNote").textContent = CONFIG.trashNote;
+  document.getElementById("checkoutTime").textContent = CONFIG.checkout;
+  const ul = document.getElementById("noteList");
+  ul.innerHTML = "";
+  for (const n of CONFIG.notes){
+    const li = document.createElement("li"); li.textContent = n; ul.appendChild(li);
+  }
+  renderPickups();
+}
+
+function nextWeekday(from, wd){
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  d.setDate(d.getDate() + ((wd - d.getDay() + 7) % 7));
+  return d;
+}
+function daysUntil(d){
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((d - today) / 86400000);
+}
+function whenText(n){
+  if (n === 0) return "Today";
+  if (n === 1) return "Tomorrow \u00B7 bins out tonight";
+  return "In " + n + " days";
+}
+function renderPickups(){
+  const now = new Date();
+  const t = nextWeekday(now, CONFIG.trash.weekday);
+  document.getElementById("trashDay").textContent = t.toLocaleDateString(undefined, {weekday:"long"});
+  document.getElementById("trashWhen").textContent = "Trash \u00B7 " + whenText(daysUntil(t));
+
+  let r = nextWeekday(now, CONFIG.recycling.weekday);
+  const anchor = nextWeekday(new Date(CONFIG.recycling.anchorDate + "T12:00:00"), CONFIG.recycling.weekday);
+  let guard = 0;
+  while (Math.round((r - anchor) / 604800000) % CONFIG.recycling.everyNWeeks !== 0 && guard++ < 8){
+    r.setDate(r.getDate() + 7);
+  }
+  const dn = daysUntil(r);
+  document.getElementById("recycleDay").textContent =
+    dn <= 6 ? r.toLocaleDateString(undefined, {weekday:"long"})
+            : r.toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric"});
+  document.getElementById("recycleWhen").textContent = "Recycling \u00B7 " + whenText(dn);
+}
+
+/* ---- clock + night dim ---- */
+function tickClock(){
+  const now = new Date();
+  let h = now.getHours(); const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  document.getElementById("clockTime").textContent = h + ":" + String(now.getMinutes()).padStart(2,"0");
+  document.getElementById("clockAmpm").textContent = ampm;
+  document.getElementById("clockDate").textContent =
+    now.toLocaleDateString(undefined, {weekday:"long", month:"long", day:"numeric"});
+}
+let dimAwake = 0;
+function tickDim(){
+  const nd = CONFIG.nightDim;
+  const el = document.getElementById("nightdim");
+  if (!nd.enabled){ el.style.opacity = 0; return; }
+  const h = new Date().getHours();
+  const night = nd.start > nd.end ? (h >= nd.start || h < nd.end) : (h >= nd.start && h < nd.end);
+  el.style.opacity = (night && Date.now() > dimAwake) ? nd.level : 0;
+}
+document.addEventListener("pointerdown", () => { dimAwake = Date.now() + 45000; tickDim(); }, {passive:true});
+document.addEventListener("keydown", () => { dimAwake = Date.now() + 45000; tickDim(); });
+setInterval(() => { tickClock(); tickDim(); renderPickups(); }, 15000);
+
+/* ---- forecast from Open-Meteo while Home Assistant isn't connected ---- */
+const WMO = c =>
+  c === 0 ? "sunny" : c <= 2 ? "partlycloudy" : c === 3 ? "cloudy" :
+  (c === 45 || c === 48) ? "fog" :
+  (c >= 51 && c <= 57) ? "rainy" : (c === 61 || c === 63 || c === 80 || c === 81) ? "rainy" :
+  (c === 65 || c === 82) ? "pouring" : (c === 66 || c === 67) ? "snowy-rainy" :
+  ((c >= 71 && c <= 77) || c === 85 || c === 86) ? "snowy" :
+  c >= 95 ? "lightning-rainy" : "cloudy";
+
+function startOpenMeteo(){
+  document.body.classList.add("noclimate");
+  fetchOpenMeteo();
+  setInterval(fetchOpenMeteo, 30*60*1000);
+}
+function fetchOpenMeteo(){
+  const L = CONFIG.location;
+  const url = "https://api.open-meteo.com/v1/forecast?latitude=" + L.lat + "&longitude=" + L.lon +
+    "&current=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min" +
+    "&temperature_unit=fahrenheit&timezone=" + encodeURIComponent(L.tz) + "&forecast_days=5";
+  fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => {
+    let cond = WMO(j.current.weather_code);
+    if (cond === "sunny" && !j.current.is_day) cond = "clear-night";
+    S[CONFIG.weatherEntity] = { s: cond, a: { temperature: j.current.temperature_2m } };
+    forecast = j.daily.time.map((t, i) => ({
+      datetime: t + "T12:00:00",   // noon local, so the weekday never slips a day
+      condition: WMO(j.daily.weather_code[i]),
+      temperature: j.daily.temperature_2m_max[i],
+      templow: j.daily.temperature_2m_min[i],
+    }));
+    setConn("weather");
+    renderWeather();
+  }).catch(() => {
+    setConn("offline");
+    setTimeout(fetchOpenMeteo, 60*1000);
+  });
+}
+
+/* ---- demo mode ---- */
+function runDemo(){
+  setConn("demo");
+  S[CONFIG.climate[0].entity] = {
+    s: "heat",
+    a: { current_temperature: 71, temperature: 72, hvac_action: "idle",
+         hvac_modes: ["off","heat","cool","dry","fan_only"] },
+  };
+  if (CONFIG.climate[1]) S[CONFIG.climate[1].entity] = {
+    s: "heat", a: { current_temperature: 69, temperature: 70, hvac_action: "heating", hvac_modes: ["off","heat"] },
+  };
+  S[CONFIG.weatherEntity] = { s: "sunny", a: { temperature: 74 } };
+  const base = new Date(); base.setHours(12,0,0,0);
+  const conds = ["sunny","partlycloudy","lightning-rainy","sunny"];
+  forecast = conds.map((c, i) => {
+    const d = new Date(base); d.setDate(d.getDate() + i);
+    return { datetime: d.toISOString(), condition: c, temperature: 76 - i * 2, templow: 51 - i };
+  });
+  for (const c of CONFIG.climate) renderClimateCard(c.entity);
+  renderWeather();
+}
+
+/* ---- utils ---- */
+function esc(s){ const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+function cssId(s){ return s.replace(/[^a-z0-9]/gi, "_"); }
+function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1).replace(/[-_]/g, " "); }
+
+/* ---- Watch TV: back to the TV's home screen (the app's LaradiseTV bridge) ---- */
+const tvBtn = document.getElementById("tvBtn");
+tvBtn.addEventListener("click", () => { if (window.LaradiseTV) window.LaradiseTV.home(); });
+window.addEventListener("focus", () => tvBtn.focus());
+setTimeout(() => tvBtn.focus(), 0);
+
+/* ---- boot ---- */
+document.addEventListener("contextmenu", e => e.preventDefault());
+buildClimateCards();
+renderStatics();
+tickClock();
+tickDim();
+connect();
+</script>
+</body>
+</html>

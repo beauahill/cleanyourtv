@@ -1,0 +1,31 @@
+# Walmart onn. Streaming Device 4K pro (device SNA, Amlogic), Android 14 / Google TV,
+# build URO4.260304.011.B1.15051976. Verified on the device 2026-10-22: every package below was
+# present and disabled cleanly, and the box reboots into the tvOS launcher from launcher/.
+#
+# Apply:   TV_HOST=<box ip> tools/disable.sh examples/onn-4k-pro/debloat.txt
+# Undo:    TV_HOST=<box ip> tools/restore.sh examples/onn-4k-pro/debloat.txt com.google.android.apps.tv.launcherx
+# Everything is DISABLED, not uninstalled.
+#
+# The last two lines (Google TV Home and the setup wizard) must only be disabled after a
+# replacement home is installed and set (launcher/build-and-install.sh with
+# STOCK_LAUNCHER=com.google.android.apps.tv.launcherx), or Home lands on nothing.
+# Kept on purpose: the streaming apps (Netflix, YouTube, YouTube TV/Music, Prime Video, Disney+,
+# Hulu, Paramount+, Peacock, Apple TV, ESPN), Chromecast, Assistant, and com.onn.bluetoothconnect
+# (remote pairing).
+
+# Google
+com.google.android.play.games
+android.autoinstalls.config.soc.amlogic     # Play auto-installs pushed after setup
+com.google.android.feedback
+com.google.android.marvin.talkback          # screen reader; re-enable from Settings > Accessibility if needed
+com.google.android.apps.tv.dreamx           # ambient-mode screensaver
+com.google.android.tv.remote.service        # Google TV phone-app remote; keep if you use the phone as a remote
+com.android.tv.feedbackconsent
+
+# Vendor (Walmart / onn)
+com.onn.updatenotification                  # boot receiver that nags about system updates
+com.onn.tv.setup.customization              # out-of-box setup customization, unused after setup
+
+# Stock home: only after the replacement launcher is home
+com.google.android.tungsten.setupwraith     # setup wizard / fallback home that nags "finish setting up"
+com.google.android.apps.tv.launcherx        # Google TV Home: ads and "For you" rows

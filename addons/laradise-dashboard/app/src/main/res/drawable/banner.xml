@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tile art in the dashboard's colours: dark sage card, a row of craftsman tiles with one lit in brass. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path android:fillColor="#FF161B16" android:pathData="M0,0h320v180h-320z" />
+    <path android:fillColor="#FF202920" android:pathData="M40,40h240v100h-240z" />
+    <path android:strokeColor="#FF33402F" android:strokeWidth="2" android:pathData="M41,41h238v98h-238z" />
+    <path android:fillColor="#FF33402F" android:pathData="M106,82h16v16h-16z M134,82h16v16h-16z M162,82h16v16h-16z" />
+    <path android:fillColor="#FFD2A24C" android:pathData="M190,82h16v16h-16z" />
+</vector>
