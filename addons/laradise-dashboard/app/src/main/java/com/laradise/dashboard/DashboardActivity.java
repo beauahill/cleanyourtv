@@ -34,6 +34,8 @@ public class DashboardActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private FrameLayout root;
     private WebView web;
+    /** Page in the WebView, for the bridge (which runs off the UI thread). */
+    private volatile String currentUrl = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +94,11 @@ public class DashboardActivity extends Activity {
         web.addJavascriptInterface(new Bridge(), "LaradiseTV");
 
         web.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                currentUrl = url == null ? "" : url;
+            }
+
             @Override
             public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
                 // Renderer killed (usually low memory after many hours): start over instead of crashing.
@@ -160,6 +167,13 @@ public class DashboardActivity extends Activity {
         @JavascriptInterface
         public void home() {
             handler.post(DashboardActivity.this::goHome);
+        }
+
+        /** ha_url / ha_token from ConfigReceiver; only the bundled page gets them. */
+        @JavascriptInterface
+        public String config(String key) {
+            if (!currentUrl.startsWith("file:///android_asset/")) return "";
+            return getSharedPreferences(ConfigReceiver.PREFS, MODE_PRIVATE).getString(key, "");
         }
     }
 }

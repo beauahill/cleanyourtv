@@ -140,6 +140,23 @@
   #wifiCard{grid-column:span 3;}
   #trashCard{grid-column:span 4;}
   #notesCard{grid-column:span 4;}
+  /* Two thermostats on a ~960 CSS px TV viewport: a smaller type scale, compact climate cards,
+     and enough room left for the WiFi card and the notes. */
+  html{font-size:12px;}
+  #climateCol{grid-column:span 3;}
+  #weatherCard{grid-column:span 5;}
+  #wifiCard{grid-column:span 4;}
+  #notesCard{grid-column:span 5;}
+  .clim{padding:1rem 1.2rem;}
+  .clim .card-eyebrow{margin-bottom:.5rem;}
+  .clim-temp{font-size:3.4rem;}
+  .clim .setrow{margin:.6rem 0;}
+  .clim .setbtn{width:3rem; height:3rem; font-size:1.6rem;}
+  .clim .settarget .val{font-size:2.1rem;}
+  .clim .modes{gap:.4rem;}
+  .clim .modebtn{padding:.45rem .3rem; min-width:3rem; font-size:.78rem;}
+  .checkout{flex-wrap:wrap; row-gap:.2rem;}
+  .checkout .t{white-space:nowrap;}
   body.noclimate #climateCol{display:none;}
   body.noclimate #weatherCard{grid-column:span 8;}
   body.noclimate #wifiCard{grid-column:span 4;}
@@ -305,7 +322,7 @@
 <div id="app">
   <header>
     <div class="brand">
-      <h1>Laradise</h1>
+      <h1 id="brandTitle">Laradise</h1>
       <div class="sub">
         <span class="sq"></span><span>Est. 1934</span>
         <span class="sq"></span><span>Laramie, Wyoming</span>
@@ -395,9 +412,10 @@ const CONFIG = {
   token: "",
 
   // One or more climate entities. Find IDs in Developer Tools > States.
+  // "modes" limits the buttons guests see (the units also offer more).
   climate: [
-    { entity: "climate.laradise_mini_split", label: "Mini Split" },
-    // { entity: "climate.sensi_thermostat", label: "Furnace" },
+    { entity: "climate.living_room_main_thermostat_thermostat", label: "Main Furnace", modes: ["off", "heat"] },
+    { entity: "climate.laradise_mini_split_laradise_mini_split", label: "Mini Split", modes: ["off", "heat", "cool", "auto"] },
   ],
 
   // Where the forecast comes from while Home Assistant isn't connected (Open-Meteo, no key).
@@ -468,6 +486,16 @@ const ACTION_LABEL = {heating:"Heating", cooling:"Cooling", drying:"Drying", fan
 const S = {};                 // entity_id -> {s: state, a: attributes}
 let ws = null, msgId = 0, retryMs = 2000;
 const pending = {};           // msgId -> handler
+// In the TV app, the Home Assistant URL and token come from the app's private storage (pushed over adb).
+if (window.LaradiseTV && LaradiseTV.config){
+  try {
+    CONFIG.haUrl = LaradiseTV.config("ha_url") || CONFIG.haUrl;
+    CONFIG.token = LaradiseTV.config("ha_token") || CONFIG.token;
+  } catch(e){}
+}
+// Guest name and checkout, from Home Assistant (Rental Control fills the checkout from Guesty).
+CONFIG.guestNameEntity = "input_text.current_guest_name";
+CONFIG.stayEntity = "sensor.rental_calendar_check_in";
 const demo = !CONFIG.token;
 
 function setConn(mode){
@@ -508,7 +536,7 @@ function connect(){
       subscribeEntities();
       fetchForecast();
     } else if (msg.type === "auth_invalid"){
-      setConn("auth");
+      setConn("auth"); startOpenMeteo();
     } else if (msg.type === "event" && msg.event){
       handleEntityEvent(msg.event);
     } else if (msg.type === "result" && pending[msg.id]){
@@ -532,6 +560,7 @@ function send(obj, handler){
 function trackedEntities(){
   const ids = CONFIG.climate.map(c => c.entity);
   if (CONFIG.weatherEntity) ids.push(CONFIG.weatherEntity);
+  ids.push(CONFIG.guestNameEntity, CONFIG.stayEntity);
   return ids;
 }
 function subscribeEntities(){
@@ -574,6 +603,7 @@ setInterval(() => { if (!demo && ws && ws.readyState === 1) fetchForecast(); }, 
 function renderEntity(id){
   if (id === CONFIG.weatherEntity) renderWeather();
   if (CONFIG.climate.some(c => c.entity === id)) renderClimateCard(id);
+  if (id === CONFIG.guestNameEntity || id === CONFIG.stayEntity) renderStay();
 }
 
 /* ---- climate ---- */
@@ -661,7 +691,8 @@ function renderClimateCard(entity){
   if (target != null){ tval.textContent = Math.round(target) + "\u00B0"; setrow.style.display = ""; }
   else { setrow.style.display = "none"; }
 
-  const modes = a.hvac_modes || [];
+  const cfg = CONFIG.climate.find(c => c.entity === entity) || {};
+  const modes = (a.hvac_modes || []).filter(m => !cfg.modes || cfg.modes.includes(m));
   modesEl.innerHTML = "";
   for (const m of modes){
     const b = document.createElement("button");
@@ -849,6 +880,25 @@ function runDemo(){
 function esc(s){ const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
 function cssId(s){ return s.replace(/[^a-z0-9]/gi, "_"); }
 function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1).replace(/[-_]/g, " "); }
+
+/* ---- welcome + checkout from Home Assistant ---- */
+function renderStay(){
+  const n = S[CONFIG.guestNameEntity];
+  const name = n && n.s ? String(n.s).trim() : "";
+  const known = name && !/^(guests?|undefined|unknown|unavailable|none)$/i.test(name);
+  document.getElementById("brandTitle").textContent = known ? "Welcome, " + name : "Laradise";
+
+  const st = S[CONFIG.stayEntity];
+  const t = document.getElementById("checkoutTime");
+  const l = t.nextElementSibling;
+  if (st && (st.s === "checked_in" || st.s === "awaiting_checkin") && st.a.end){
+    const end = new Date(st.a.end);
+    t.textContent = end.toLocaleTimeString(undefined, {hour:"numeric", minute:"2-digit"});
+    l.textContent = "checkout " + end.toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric"});
+  } else {
+    t.textContent = CONFIG.checkout; l.textContent = "checkout";
+  }
+}
 
 /* ---- Watch TV: back to the TV's home screen (the app's LaradiseTV bridge) ---- */
 const tvBtn = document.getElementById("tvBtn");
