@@ -168,6 +168,13 @@ needed. Options in `gameMode`: `"sound": "builtin"` (default), `"none"`, or a fi
 can carry its own `"sound"` (the Sabres horn for the Sabres, say) which wins over the global one.
 The kiosk app allows autoplay; a desktop browser may stay silent until you press a key on the page.
 
+**Video for a team.** A favourite can play a clip instead: put an `.mp4` (H.264) or `.webm` under
+`static/media/` (git-ignored) and add `"video": "media/sabres.mp4"` to that favourite. The clip
+runs full-screen with its own audio, the GOAL text over the bottom, and ends with the clip or
+after `"videoSeconds"` (default 20); Back or OK cuts it short. `"videoMuted": true` keeps the synth
+horn under a silent clip. Only use clips you have the right to play; the hub can't fetch from
+YouTube or anywhere else, it plays files you put there.
+
 **Delay.** ESPN's data usually beats the broadcast by 20 to 60 seconds, which spoils the moment.
 Two knobs:
 

@@ -392,3 +392,10 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .fx-simple .frow .val { color: var(--accent); font-weight: 600; }
 .fx-simple .frow .sub { grid-column: 1 / -1; color: var(--dim); font-size: 1.3rem; margin-top: -0.4rem; }
 .fx-simple .fline { color: var(--muted); font-size: 1.5rem; }
+
+/* ---------- per-team video callout ---------- */
+.callout.has-video { background: #000; }
+.callout.has-video .callout-lamp, .callout.has-video .callout-icon, .callout.has-video .callout-confetti { display: none; }
+.callout-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.callout.has-video .callout-word { position: absolute; bottom: 9rem; font-size: 7rem; text-shadow: 0 0.5rem 3rem rgba(0,0,0,0.9); }
+.callout.has-video .callout-sub { position: absolute; bottom: 5rem; font-size: 2rem; }

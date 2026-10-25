@@ -906,6 +906,9 @@
     const k = ev.key, code = ev.keyCode;
     if (idleMs > 10000 && !state.overlayOpen && !state.gm.active && /^Arrow/.test(k) && recoverFocusAfterIdle()) { ev.preventDefault(); return; }
     const isBack = k === "Escape" || k === "Backspace" || k === "GoBack" || k === "BrowserBack" || code === 27 || code === 461 || code === 10009;
+    if (!$("#callout").classList.contains("hidden") && $("#callout").classList.contains("has-video") && (isBack || k === "Enter" || code === 13)) {
+      $("#callout-video").dispatchEvent(new Event("ended")); ev.preventDefault(); return;
+    }
     if (state.gm.active) {
       if (isBack || k === "Enter" || code === 13) exitGameMode();
       else if (k === "ArrowLeft") cycleGameMode(-1);
@@ -1251,6 +1254,8 @@
     // the sound back so the TV shows the play first. The score on the cards still updates at once.
     const snapshot = JSON.parse(JSON.stringify(g));
     const fire = () => {
+      const fav = favSide ? favoriteFor(snapshot, side) : null;
+      if (fav && fav.video) { showVideoCallout(word + " " + (t.short || t.abbr), snapshot, side, fav); return; }
       showCallout(word + " " + (t.short || t.abbr), snapshot, side, favSide);
       if (favSide) playScoreSound(snapshot, side);
     };
@@ -1314,10 +1319,43 @@
   //   "builtin" (default): a synthesized goal horn + crowd, or the ballpark "Charge!" for baseball
   //   "sounds/bills.mp3": a file you put under static/sounds/
   //   "" or "none": silent
-  function playScoreSound(g, side) {
+  function favoriteFor(g, side) {
     const favs = (state.config && state.config.favorites) || [];
     const abbr = (g[side].abbr || "").toLowerCase(), id = String(g[side].id || "").toLowerCase();
-    const fav = favs.find((f) => f.league === g.league && [abbr, id].includes((f.team || "").toLowerCase())) || {};
+    return favs.find((f) => f.league === g.league && [abbr, id].includes((f.team || "").toLowerCase())) || null;
+  }
+
+  // A favourite with "video": "media/sabres.mp4" plays that clip full-screen on its score, with the
+  // clip's own audio (set "videoMuted": true to keep the synth horn instead). Ends when the clip
+  // ends or after "videoSeconds", whichever is first.
+  let videoTimer = null;
+  function showVideoCallout(word, g, side, fav) {
+    const c = $("#callout");
+    const v = $("#callout-video");
+    const t = g[side];
+    c.style.setProperty("--callout-rgb", teamRgb(t));
+    c.dataset.sport = g.sport;
+    c.querySelector(".callout-word").textContent = word;
+    c.querySelector(".callout-sub").textContent = g.shortName + "  ·  " + g.away.score + "–" + g.home.score + (g.detail ? "  ·  " + g.detail : "");
+    c.querySelector(".callout-icon").innerHTML = "";
+    c.querySelector(".callout-confetti").innerHTML = "";
+    c.classList.add("has-video");
+    v.classList.remove("hidden");
+    v.muted = !!fav.videoMuted;
+    v.volume = gmCfg().soundVolume == null ? 0.8 : Math.max(0, Math.min(1, Number(gmCfg().soundVolume)));
+    v.src = fav.video;
+    c.classList.remove("hidden");
+    clearTimeout(calloutTimer); clearTimeout(videoTimer);
+    const done = () => { v.pause(); v.removeAttribute("src"); v.load(); v.classList.add("hidden"); c.classList.remove("has-video"); c.classList.add("hidden"); };
+    v.onended = done;
+    v.onerror = () => { done(); showCallout(word, g, side, true); playScoreSound(g, side); }; // bad file: fall back to the normal callout
+    videoTimer = setTimeout(done, (Number(fav.videoSeconds) || 20) * 1000);
+    v.play().catch(() => { /* autoplay blocked: the clip still shows its first frame until the timer */ });
+    if (fav.videoMuted) playScoreSound(g, side);
+  }
+
+  function playScoreSound(g, side) {
+    const fav = favoriteFor(g, side) || {};
     const cfg = gmCfg();
     const src = fav.sound != null ? fav.sound : (cfg.sound == null ? "builtin" : cfg.sound);
     const vol = cfg.soundVolume == null ? 0.8 : Math.max(0, Math.min(1, Number(cfg.soundVolume)));
@@ -1422,6 +1460,9 @@
                 away: t, home: { abbr: "OPP", short: "Visitors", color: "334455", altColor: "ffffff", score: "0" }, favorite: true };
     g.away = Object.assign({}, t, { score: sport === "football" ? "7" : "1" });
     const word = scoreWord(g, sport === "football" ? 7 : 1) || "Score";
+    g.league = (favs[0] && favs[0].league) || "demo";
+    const fav = favoriteFor(g, "away");
+    if (fav && fav.video) { showVideoCallout(word + " " + (t.short || t.abbr), g, "away", fav); return; }
     showCallout(word + " " + (t.short || t.abbr), g, "away", true);
     playScoreSound(g, "away");
   }
