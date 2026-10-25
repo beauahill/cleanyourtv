@@ -169,9 +169,17 @@ can carry its own `"sound"` (the Sabres horn for the Sabres, say) which wins ove
 The kiosk app allows autoplay; a desktop browser may stay silent until you press a key on the page.
 
 **Delay.** ESPN's data usually beats the broadcast by 20 to 60 seconds, which spoils the moment.
-`"calloutDelaySeconds": 30` holds the banner and the sound back that long; the numbers on the cards
-still update immediately. Tune it against your stream: trigger the demo with `0` while watching a
-live game, or just note how far ahead the hub is on the next score.
+Two knobs:
+
+- `"scoreDelaySeconds": 30` (top level) holds *everything on screen* back that long: cards, the
+  board, scoring plays, My Teams. The header shows "delayed 30s" so you know. Polling tightens to
+  15 s while a game is live so the delayed feed moves smoothly.
+- `"gameMode": {"calloutDelaySeconds": 5}` additionally holds the banner and sound back after the
+  delayed score lands, if you want the numbers a beat before the celebration.
+
+Tune against your stream: note how far ahead the hub is on the next score and set
+`scoreDelaySeconds` to that. Try values live without a restart from the laptop's browser console:
+`SportsHubPage.setOption("scoreDelaySeconds", 45)`.
 
 To see the callouts without waiting for a game: press `0` on the page (each press is the next
 sport), or open `http://<pc-ip>:8777/?demo=score` to play all five in a row. On the stick:

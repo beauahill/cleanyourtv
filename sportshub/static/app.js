@@ -24,6 +24,8 @@
     overlayOpen: false,
     overlayGame: null,
     lastKeyAt: Date.now(),
+    version: null,
+    latestToday: null,
     timers: {},
     gm: { active: false, league: null, id: null, enteredAt: 0, finalAt: 0, details: null, lastRotate: 0 },
     scores: {},            // "league:id" -> {away, home} for score-change detection
@@ -107,6 +109,31 @@
     if (tf.callouts !== false) root.setProperty("--callout-font", '"HubTitle", "Outfit", sans-serif');
   }
 
+  // ------------------------------------------------------------------ broadcast delay
+  // scoreDelaySeconds holds every fetched snapshot back so what is on screen matches the TV feed,
+  // which runs behind ESPN's data. Each feed keeps a queue of (fetched-at, data) and renders the
+  // newest entry that is old enough; a 1-second ticker promotes entries as they come due.
+  function scoreDelayMs() { return Math.max(0, Number((state.config && state.config.scoreDelaySeconds) || 0)) * 1000; }
+  const delayQueues = {};
+  function delayed(key, data, render) {
+    const q = delayQueues[key] || (delayQueues[key] = { items: [], render: null });
+    q.render = render;
+    q.items.push({ at: Date.now(), data: data });
+    pumpDelayQueue(key);
+  }
+  function pumpDelayQueue(key) {
+    const q = delayQueues[key];
+    if (!q) return;
+    const due = Date.now() - scoreDelayMs();
+    let pick = -1;
+    for (let i = q.items.length - 1; i >= 0; i--) { if (q.items[i].at <= due) { pick = i; break; } }
+    if (pick < 0) return;
+    const item = q.items[pick];
+    q.items = q.items.slice(pick + 1);
+    q.render(item.data);
+  }
+  setInterval(() => Object.keys(delayQueues).forEach(pumpDelayQueue), 1000);
+
   // ------------------------------------------------------------------ data
   async function getJSON(url) {
     const r = await fetch(url, { cache: "no-store" });
@@ -124,23 +151,37 @@
 
   async function loadToday() {
     try {
-      state.today = await getJSON("/api/today");
-      setStale(state.today.leagues.some((l) => l.stale));
-      $("#updated").textContent = "updated " + fmtTime(new Date());
+      const fresh = await getJSON("/api/today");
+      setStale(fresh.leagues.some((l) => l.stale));
+      $("#updated").textContent = "updated " + fmtTime(new Date()) + (scoreDelayMs() ? "  ·  delayed " + Math.round(scoreDelayMs() / 1000) + "s" : "");
+      maybeReloadForNewVersion(fresh.version);
+      state.latestToday = fresh; // undelayed copy: drives the poll cadence, never rendered
+      delayed("today", fresh, applyToday);
     } catch (e) {
       setStale(true);
-      if (!state.today) state.today = { leagues: [], liveCount: 0 };
+      if (!state.today) { state.today = { leagues: [], liveCount: 0 }; renderTabs(); renderGames(); }
     }
+    scheduleToday();
+  }
+
+  function applyToday(data) {
+    state.today = data;
     detectScoreChanges();
     renderTabs();
     renderGames();
     if (state.gm.active) renderGameMode();
-    scheduleToday();
+  }
+
+  // The kiosk never reloads the page on its own, so when the server reports a new static version
+  // (any file under static/ changed) the page reloads itself; the delay queues restart empty.
+  function maybeReloadForNewVersion(v) {
+    if (!v) return;
+    if (!state.version) { state.version = v; return; }
+    if (v !== state.version && !state.gm.active && !state.overlayOpen) location.reload();
   }
 
   async function loadMyTeams() {
-    try { state.myteams = await getJSON("/api/myteams"); } catch (e) { /* keep old */ }
-    renderMyTeams();
+    try { delayed("myteams", await getJSON("/api/myteams"), (d) => { state.myteams = d; renderMyTeams(); }); } catch (e) { /* keep old */ }
   }
 
   async function loadNews() {
@@ -159,8 +200,10 @@
   function scheduleToday() {
     clearTimeout(state.timers.today);
     const r = (state.config && state.config.refresh) || {};
-    const live = state.today && state.today.liveCount > 0;
+    const latest = state.latestToday || state.today;
+    const live = latest && latest.liveCount > 0;
     let secs = live ? (r.liveSeconds || 30) : (r.idleSeconds || 300);
+    if (scoreDelayMs() && live) secs = Math.min(secs, 15); // finer steps so the delayed feed stays smooth
     if (state.gm.active) secs = Math.min(secs, gmCfg().refreshSeconds || 15);
     state.timers.today = setTimeout(loadToday, secs * 1000);
   }
@@ -901,6 +944,7 @@
     demo(sport) { demoCallout(sport); },
     // change a gameMode option on the running page (until the next reload), e.g. ("calloutDelaySeconds", 30)
     setGameModeOption(key, value) { if (!state.config.gameMode) state.config.gameMode = {}; state.config.gameMode[key] = value; },
+    setOption(key, value) { state.config[key] = value; },
     // renders a built-in sound offline and resolves with its peak level (0..1); for diagnostics
     testSound(sport) {
       const ctx = new OfflineAudioContext(1, 44100 * 5, 44100);
@@ -1009,7 +1053,7 @@
     if (!g) return;
     try {
       const d = await getJSON("/api/game?league=" + encodeURIComponent(g.league) + "&id=" + encodeURIComponent(g.id));
-      if (state.gm.active && state.gm.id === g.id) { state.gm.details = d; renderGameMode(); }
+      delayed("game:" + g.id, d, (dd) => { if (state.gm.active && state.gm.id === g.id) { state.gm.details = dd; renderGameMode(); } });
     } catch (e) { /* board works without details */ }
   }
 

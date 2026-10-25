@@ -42,6 +42,7 @@
   "idleAfterSeconds": 30,
   "idleScrollSeconds": 7,
   "idleRotateSeconds": 20,
+  "scoreDelaySeconds": 0,
   "showOdds": true,
 
   "gameMode": {

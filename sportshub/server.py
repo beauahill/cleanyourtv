@@ -68,6 +68,7 @@ DEFAULT_CONFIG = {
     "idleAfterSeconds": 30,
     "idleScrollSeconds": 7,
     "idleRotateSeconds": 20,
+    "scoreDelaySeconds": 0,
     "showOdds": True,
     "gameMode": {"auto": True, "idleSeconds": 60, "rotateSeconds": 0, "refreshSeconds": 15,
                  "exitAfterFinalSeconds": 120, "callouts": True, "calloutDelaySeconds": 0, "sound": "builtin",
@@ -503,7 +504,7 @@ class Api:
 
     def today(self):
         out = {"generatedAt": datetime.now(self.tz).isoformat(timespec="seconds"),
-               "timezone": str(self.tz), "leagues": [], "errors": {}}
+               "timezone": str(self.tz), "version": static_version(), "leagues": [], "errors": {}}
         for lg in self.cfg["leagues"]:
             try:
                 out["leagues"].append(self.scoreboard(lg["key"]))
@@ -657,6 +658,27 @@ class Api:
         f = dict(cfg.get("fantasy") or {})
         cfg["fantasy"] = {"enabled": bool(f.get("enabled")), "title": f.get("title")}
         return cfg
+
+
+_VERSION = {"at": 0, "value": ""}
+
+
+def static_version():
+    """Fingerprint of the page files, checked at most every 10 s; the page reloads when it changes."""
+    now = time.time()
+    if now - _VERSION["at"] > 10:
+        parts = []
+        for root, _dirs, files in os.walk(STATIC):
+            for f in files:
+                if f.endswith((".html", ".js", ".css")):
+                    p = os.path.join(root, f)
+                    try:
+                        parts.append(f"{f}:{int(os.stat(p).st_mtime)}:{os.path.getsize(p)}")
+                    except OSError:
+                        pass
+        _VERSION["value"] = str(abs(hash("|".join(sorted(parts)))) % 10**10)
+        _VERSION["at"] = now
+    return _VERSION["value"]
 
 
 def _tz(name):
