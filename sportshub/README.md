@@ -228,6 +228,10 @@ The full set of keys, with their defaults:
 }
 ```
 
+- **Screen edges.** If the TV crops the clock on the left or the status pills on the right, the TV
+  is overscanning. Best fix is on the TV: picture size "Fit to screen" / "Just scan" / "Direct"
+  (Roku TVs: Settings → TV picture settings → Picture size). Otherwise `"safeAreaRem": 4` (default
+  2.5) insets the whole page further. `"titleLogosMax": 4` limits the team logos beside the title.
 - **Leagues.** `sport/league` is ESPN's path: `football/nfl`, `football/college-football`,
   `basketball/nba`, `basketball/mens-college-basketball`, `basketball/wnba`, `hockey/nhl`,
   `baseball/mlb`, `soccer/usa.1` (MLS), `soccer/eng.1` (Premier League), `golf/pga`… `params` are

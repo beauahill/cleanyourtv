@@ -69,6 +69,8 @@ DEFAULT_CONFIG = {
     "idleScrollSeconds": 7,
     "idleRotateSeconds": 20,
     "scoreDelaySeconds": 0,
+    "safeAreaRem": 2.5,
+    "titleLogosMax": 6,
     "showOdds": True,
     "gameMode": {"auto": True, "idleSeconds": 60, "rotateSeconds": 0, "refreshSeconds": 15,
                  "exitAfterFinalSeconds": 120, "callouts": True, "calloutDelaySeconds": 0, "sound": "builtin",

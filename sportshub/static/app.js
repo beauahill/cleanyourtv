@@ -152,6 +152,8 @@
     state.config = await getJSON("/api/config");
     $("#title").textContent = state.config.title || "Sports Hub";
     document.title = state.config.title || "Sports Hub";
+    // TVs that overscan crop the edges: "safeAreaRem": 4 (default 2.5) insets the whole page more
+    if (state.config.safeAreaRem != null) document.documentElement.style.setProperty("--safe", Number(state.config.safeAreaRem) + "rem");
     applyTheme(state.config.theme);
     renderDock();
   }
@@ -160,7 +162,9 @@
     try {
       const fresh = await getJSON("/api/today");
       setStale(fresh.leagues.some((l) => l.stale));
-      $("#updated").textContent = "updated " + fmtTime(new Date()) + (scoreDelayMs() ? "  ·  delayed " + Math.round(scoreDelayMs() / 1000) + "s" : "");
+      $("#updated").textContent = "updated " + fmtTime(new Date());
+      $("#delay-pill").classList.toggle("hidden", !scoreDelayMs());
+      $("#delay-secs").textContent = Math.round(scoreDelayMs() / 1000);
       maybeReloadForNewVersion(fresh.version);
       state.latestToday = fresh; // undelayed copy: drives the poll cadence, never rendered
       delayed("today", fresh, applyToday);
@@ -432,7 +436,10 @@
       seen.add(t.logo); logos.push(t);
     });
     if (!logos.length) return;
+    const max = Number((state.config && state.config.titleLogosMax) || 6);
+    logos.splice(max);
     left.innerHTML = ""; right.innerHTML = "";
+    document.querySelector(".title-wrap").classList.toggle("many", logos.length > 4);
     const half = Math.ceil(logos.length / 2);
     logos.forEach((t, i) => {
       const img = el("img");

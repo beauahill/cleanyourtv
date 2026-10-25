@@ -49,16 +49,21 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .app:not(.dock-top) { grid-template-rows: auto auto 1fr; }
 
 /* ---------- header ---------- */
-.top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+.top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr); align-items: center; gap: 1rem; min-width: 0; }
+.clock { min-width: 0; }
 .clock-time { font-size: 4.2rem; font-weight: 200; letter-spacing: -0.02em; line-height: 1; }
 .clock-date { font-size: 1.5rem; color: var(--muted); margin-top: 0.3rem; font-weight: 300; }
-.title-wrap { display: flex; align-items: center; justify-content: center; gap: 1.4rem; }
-.title { font-family: var(--title-font, inherit); font-size: var(--title-size, 2rem); font-weight: var(--title-weight, 600); letter-spacing: var(--title-spacing, 0.3em); text-transform: uppercase; color: var(--title-color); line-height: 1; }
+.title-wrap { display: flex; align-items: center; justify-content: center; gap: 1.2rem; max-width: 52vw; min-width: 0; overflow: hidden; }
+.title { font-family: var(--title-font, inherit); font-size: var(--title-size, 2rem); font-weight: var(--title-weight, 600); letter-spacing: var(--title-spacing, 0.3em); text-transform: uppercase; color: var(--title-color); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .title-logos { display: flex; align-items: center; gap: 0.8rem; }
 .title-logos:empty { display: none; }
+.title-logos { flex: 0 0 auto; }
 .title-logos img { height: 3.2rem; width: 3.2rem; object-fit: contain; }
-.status { display: flex; justify-content: flex-end; align-items: center; gap: 1.2rem; }
-.updated { color: var(--dim); font-size: 1.3rem; }
+.title-wrap.many .title-logos img { height: 2.4rem; width: 2.4rem; }
+.title-wrap.many .title-logos { gap: 0.5rem; }
+.status { display: flex; justify-content: flex-end; align-items: center; gap: 1.2rem; min-width: 0; white-space: nowrap; }
+.updated { color: var(--dim); font-size: 1.3rem; white-space: nowrap; }
+.pill-delay { border-color: rgba(var(--accent-rgb), 0.6); color: var(--accent); }
 .pill {
   font-size: 1.3rem; font-weight: 600; letter-spacing: 0.08em; padding: 0.45rem 1rem; border-radius: 2rem;
   display: inline-flex; align-items: center; gap: 0.6rem; border: 0.12rem solid var(--line); color: var(--muted);
