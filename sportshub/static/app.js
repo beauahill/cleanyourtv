@@ -116,8 +116,15 @@
   function scoreDelayMs() { return Math.max(0, Number((state.config && state.config.scoreDelaySeconds) || 0)) * 1000; }
   const delayQueues = {};
   function delayed(key, data, render) {
-    const q = delayQueues[key] || (delayQueues[key] = { items: [], render: null });
+    const q = delayQueues[key] || (delayQueues[key] = { items: [], render: null, seeded: false });
     q.render = render;
+    if (!q.seeded) {
+      // first snapshot after a (re)load renders at once: a blank screen for the length of the
+      // delay is worse than one glimpse of the current score; everything after it is held back
+      q.seeded = true;
+      render(data);
+      return;
+    }
     q.items.push({ at: Date.now(), data: data });
     pumpDelayQueue(key);
   }
