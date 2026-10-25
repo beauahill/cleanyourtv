@@ -70,7 +70,8 @@ DEFAULT_CONFIG = {
     "idleRotateSeconds": 20,
     "showOdds": True,
     "gameMode": {"auto": True, "idleSeconds": 60, "rotateSeconds": 0, "refreshSeconds": 15,
-                 "exitAfterFinalSeconds": 120, "callouts": True, "sound": ""},
+                 "exitAfterFinalSeconds": 120, "callouts": True, "calloutDelaySeconds": 0, "sound": "builtin",
+                 "soundVolume": 0.8},
     "fantasy": {"enabled": False, "command": "", "url": "", "cacheSeconds": 120, "timeoutSeconds": 30},
 }
 

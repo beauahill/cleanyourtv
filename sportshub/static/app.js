@@ -899,6 +899,16 @@
     gameMode(league, id) { const g = allGames().find((x) => x.league === league && x.id === id); if (g) enterGameMode(g); },
     // for testing callouts from the browser console: SportsHubPage.simulateScore("nfl", "401901001", "away", 7)
     demo(sport) { demoCallout(sport); },
+    // change a gameMode option on the running page (until the next reload), e.g. ("calloutDelaySeconds", 30)
+    setGameModeOption(key, value) { if (!state.config.gameMode) state.config.gameMode = {}; state.config.gameMode[key] = value; },
+    // renders a built-in sound offline and resolves with its peak level (0..1); for diagnostics
+    testSound(sport) {
+      const ctx = new OfflineAudioContext(1, 44100 * 5, 44100);
+      const g = ctx.createGain(); g.gain.value = 0.8; g.connect(ctx.destination);
+      if (sport === "baseball") { playCharge(ctx, g, 0.05); playCrowd(ctx, g, 1.4, 2.2, 0.3); }
+      else { playHorn(ctx, g, 0.05, sport === "hockey" ? 2.6 : 1.8); playCrowd(ctx, g, 0.2, 3.6, 0.35); }
+      return ctx.startRendering().then((buf) => { const d = buf.getChannelData(0); let p = 0; for (let i = 0; i < d.length; i++) p = Math.max(p, Math.abs(d[i])); return p; });
+    },
     simulateScore(league, id, side, delta) { const g = allGames().find((x) => x.league === league && x.id === id); if (!g) return; g[side].score = String((parseInt(g[side].score, 10) || 0) + delta); detectScoreChanges(); if (state.gm.active) renderGameMode(); else renderGames(); },
     refresh() { loadToday(); loadMyTeams(); loadNews(); loadFantasy(); },
   };
@@ -1179,8 +1189,15 @@
     if (!word || gmCfg().callouts === false) return;
     if (!g.favorite && !inBoard) return;
     const favSide = isFavoriteTeam(g, side);
-    showCallout(word + " " + (t.short || t.abbr), g, side, favSide);
-    if (favSide) playScoreSound(g, side);
+    // ESPN's feed usually runs ahead of the broadcast; calloutDelaySeconds holds the banner and
+    // the sound back so the TV shows the play first. The score on the cards still updates at once.
+    const snapshot = JSON.parse(JSON.stringify(g));
+    const fire = () => {
+      showCallout(word + " " + (t.short || t.abbr), snapshot, side, favSide);
+      if (favSide) playScoreSound(snapshot, side);
+    };
+    const delay = Number(gmCfg().calloutDelaySeconds) || 0;
+    if (delay > 0) setTimeout(fire, delay * 1000); else fire();
   }
 
   function isFavoriteTeam(g, side) {
@@ -1235,13 +1252,103 @@
     calloutTimer = setTimeout(() => c.classList.add("hidden"), favSide ? 9000 : 5000);
   }
 
+  // Sound on a favourite's score. "sound" on the favourite, else gameMode.sound:
+  //   "builtin" (default): a synthesized goal horn + crowd, or the ballpark "Charge!" for baseball
+  //   "sounds/bills.mp3": a file you put under static/sounds/
+  //   "" or "none": silent
   function playScoreSound(g, side) {
     const favs = (state.config && state.config.favorites) || [];
     const abbr = (g[side].abbr || "").toLowerCase(), id = String(g[side].id || "").toLowerCase();
     const fav = favs.find((f) => f.league === g.league && [abbr, id].includes((f.team || "").toLowerCase())) || {};
-    const src = fav.sound || gmCfg().sound;
-    if (!src) return;
-    try { const a = new Audio(src); a.volume = 1; a.play().catch(() => {}); } catch (e) { /* no audio */ }
+    const cfg = gmCfg();
+    const src = fav.sound != null ? fav.sound : (cfg.sound == null ? "builtin" : cfg.sound);
+    const vol = cfg.soundVolume == null ? 0.8 : Math.max(0, Math.min(1, Number(cfg.soundVolume)));
+    if (!src || src === "none" || vol === 0) return;
+    if (src === "builtin") { playBuiltinSound(g.sport, vol); return; }
+    try { const a = new Audio(src); a.volume = vol; a.play().catch(() => {}); } catch (e) { /* no audio */ }
+  }
+
+  // ---- synthesized celebration sounds (Web Audio, no files)
+  let audioCtx = null;
+  function audio() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+    return audioCtx;
+  }
+  // browsers may keep audio suspended until the first key press; the remote provides one soon enough
+  document.addEventListener("keydown", () => { if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {}); });
+
+  function playBuiltinSound(sport, vol) {
+    const ctx = audio();
+    if (!ctx) return;
+    const master = ctx.createGain();
+    master.gain.value = vol;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -12; comp.ratio.value = 6; comp.attack.value = 0.005; comp.release.value = 0.2;
+    master.connect(comp); comp.connect(ctx.destination);
+    const t0 = ctx.currentTime + 0.02;
+    if (sport === "baseball") { playCharge(ctx, master, t0); playCrowd(ctx, master, t0 + 1.4, 2.2, 0.3); return; }
+    const len = sport === "hockey" ? 2.6 : 1.8;
+    playHorn(ctx, master, t0, len);
+    playCrowd(ctx, master, t0 + 0.15, len + 1.8, 0.35);
+  }
+
+  // Goal horn: two detuned sawtooth voices a fifth apart with a slow swell, like an arena horn.
+  function playHorn(ctx, out, t0, len) {
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.16, t0 + 0.12);
+    g.gain.setValueAtTime(0.16, t0 + len - 0.25);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + len);
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = 1400; lp.Q.value = 2;
+    g.connect(lp); lp.connect(out);
+    [[146.8, 0], [146.8, 4], [220, -3], [293.7, 2]].forEach(([f, det]) => {
+      const o = ctx.createOscillator();
+      o.type = "sawtooth"; o.frequency.value = f; o.detune.value = det;
+      o.frequency.setValueAtTime(f * 0.97, t0);
+      o.frequency.exponentialRampToValueAtTime(f, t0 + 0.25);
+      o.connect(g); o.start(t0); o.stop(t0 + len + 0.05);
+    });
+  }
+
+  // Crowd: band-passed noise with a swell and long tail.
+  function playCrowd(ctx, out, t0, len, level) {
+    const n = Math.floor(ctx.sampleRate * len);
+    const buf = ctx.createBuffer(1, n, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; last = 0.96 * last + 0.04 * w; d[i] = last * 6 + w * 0.15; }
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 700; bp.Q.value = 0.6;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(level, t0 + 0.5);
+    g.gain.setValueAtTime(level, t0 + len * 0.45);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + len);
+    src.connect(bp); bp.connect(g); g.connect(out);
+    src.start(t0); src.stop(t0 + len + 0.05);
+  }
+
+  // Ballpark organ "Charge!": G C E G E G
+  function playCharge(ctx, out, t0) {
+    const notes = [[392, 0.13], [523.3, 0.13], [659.3, 0.13], [784, 0.3], [659.3, 0.16], [784, 0.5]];
+    let t = t0;
+    notes.forEach(([f, dur], i) => {
+      [1, 2, 3].forEach((h) => {
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.type = h === 1 ? "square" : "sine"; o.frequency.value = f * h;
+        const lv = (h === 1 ? 0.18 : 0.08) / h;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(lv, t + 0.02);
+        g.gain.setValueAtTime(lv, t + dur - 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + 0.02);
+      });
+      t += dur + (i === 3 ? 0.05 : 0.02);
+    });
   }
 
   // Demo callouts: press 0 on the page, or open /?demo=score to play every sport once.

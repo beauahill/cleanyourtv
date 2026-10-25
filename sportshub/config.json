@@ -51,7 +51,9 @@
     "refreshSeconds": 15,
     "exitAfterFinalSeconds": 120,
     "callouts": true,
-    "sound": ""
+    "calloutDelaySeconds": 0,
+    "sound": "builtin",
+    "soundVolume": 0.8
   },
 
   "fantasy": {

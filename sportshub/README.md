@@ -151,16 +151,27 @@ Set `gameMode.rotateSeconds` above 0 to cycle through all live favourites instea
   {"league": "nhl", "team": "buf"}
 ],
 "gameMode": {"auto": true, "idleSeconds": 60, "rotateSeconds": 0, "refreshSeconds": 15,
-             "exitAfterFinalSeconds": 120, "callouts": true, "sound": ""}
+             "exitAfterFinalSeconds": 120, "callouts": true, "calloutDelaySeconds": 0,
+             "sound": "builtin", "soundVolume": 0.8}
 ```
 
 **Score callouts.** Whenever a favourite's game changes score (or any game while its board is up)
 the screen flashes a banner in the scoring team's colour: TOUCHDOWN / FIELD GOAL / SAFETY, GOAL,
 RUN SCORES / GRAND SLAM, with a sport-specific animation (a tumbling football, a goal lamp and a
 sliding puck, a ball arcing out of the park, a rolling soccer ball) and confetti in the team's
-colours. Basketball is left quiet because it scores every 20 seconds. If you want a horn, drop an
-audio file under `static/sounds/` (git-ignored) and name it per favourite with `sound`, or once for
-all of them with `gameMode.sound`. The kiosk app allows autoplay; a plain browser may not.
+colours. Basketball is left quiet because it scores every 20 seconds.
+
+**Sound.** A favourite's score also plays a celebration: by default a synthesized arena goal horn
+with a crowd roar (hockey, football, soccer) or the ballpark organ "Charge!" (baseball), no files
+needed. Options in `gameMode`: `"sound": "builtin"` (default), `"none"`, or a file such as
+`"sounds/horn.mp3"` placed under `static/sounds/` (git-ignored); `"soundVolume": 0.8`. A favourite
+can carry its own `"sound"` (the Sabres horn for the Sabres, say) which wins over the global one.
+The kiosk app allows autoplay; a desktop browser may stay silent until you press a key on the page.
+
+**Delay.** ESPN's data usually beats the broadcast by 20 to 60 seconds, which spoils the moment.
+`"calloutDelaySeconds": 30` holds the banner and the sound back that long; the numbers on the cards
+still update immediately. Tune it against your stream: trigger the demo with `0` while watching a
+live game, or just note how far ahead the hub is on the next score.
 
 To see the callouts without waiting for a game: press `0` on the page (each press is the next
 sport), or open `http://<pc-ip>:8777/?demo=score` to play all five in a row. On the stick:
