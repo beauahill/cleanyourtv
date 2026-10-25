@@ -166,12 +166,16 @@ with a crowd roar (hockey, football, soccer) or the ballpark organ "Charge!" (ba
 needed. Options in `gameMode`: `"sound": "builtin"` (default), `"none"`, or a file such as
 `"sounds/horn.mp3"` placed under `static/sounds/` (git-ignored); `"soundVolume": 0.8`. A favourite
 can carry its own `"sound"` (the Sabres horn for the Sabres, say) which wins over the global one.
+The file can also be a video (`"sound": "media/sabres.mp4"`): only its audio plays, under the normal
+animation. File sounds stop after `"soundSeconds"` (default 20) with a `"soundFadeSeconds"`
+(default 3) fade; both can be set globally in `gameMode` or per favourite.
 The kiosk app allows autoplay; a desktop browser may stay silent until you press a key on the page.
 
 **Video for a team.** A favourite can play a clip instead: put an `.mp4` (H.264) or `.webm` under
 `static/media/` (git-ignored) and add `"video": "media/sabres.mp4"` to that favourite. The clip
 runs full-screen with its own audio, the GOAL text over the bottom, and ends with the clip or
-after `"videoSeconds"` (default 20); Back or OK cuts it short. `"videoMuted": true` keeps the synth
+after `"videoSeconds"` (default: `soundSeconds`), fading picture and sound over `"videoFadeSeconds"`
+(default: `soundFadeSeconds`); Back or OK cuts it short. `"videoMuted": true` keeps the synth
 horn under a silent clip. Only use clips you have the right to play; the hub can't fetch from
 YouTube or anywhere else, it plays files you put there.
 

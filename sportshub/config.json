@@ -54,7 +54,9 @@
     "callouts": true,
     "calloutDelaySeconds": 0,
     "sound": "builtin",
-    "soundVolume": 0.8
+    "soundVolume": 0.8,
+    "soundSeconds": 20,
+    "soundFadeSeconds": 3
   },
 
   "fantasy": {

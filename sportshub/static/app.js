@@ -1346,10 +1346,14 @@
     v.src = fav.video;
     c.classList.remove("hidden");
     clearTimeout(calloutTimer); clearTimeout(videoTimer);
-    const done = () => { v.pause(); v.removeAttribute("src"); v.load(); v.classList.add("hidden"); c.classList.remove("has-video"); c.classList.add("hidden"); };
+    let cancelFade = null;
+    const done = () => { if (cancelFade) cancelFade(); v.pause(); v.removeAttribute("src"); v.load(); v.style.opacity = ""; v.classList.add("hidden"); c.classList.remove("has-video"); c.classList.add("hidden"); };
     v.onended = done;
     v.onerror = () => { done(); showCallout(word, g, side, true); playScoreSound(g, side); }; // bad file: fall back to the normal callout
-    videoTimer = setTimeout(done, (Number(fav.videoSeconds) || 20) * 1000);
+    const secs = fav.videoSeconds != null ? Number(fav.videoSeconds) : soundLimits(fav).secs;
+    const fade = fav.videoFadeSeconds != null ? Number(fav.videoFadeSeconds) : soundLimits(fav).fade;
+    cancelFade = capAndFade(v, secs, fade, done);
+    videoTimer = setTimeout(done, (secs + 0.5) * 1000);
     v.play().catch(() => { /* autoplay blocked: the clip still shows its first frame until the timer */ });
     if (fav.videoMuted) playScoreSound(g, side);
   }
@@ -1361,7 +1365,53 @@
     const vol = cfg.soundVolume == null ? 0.8 : Math.max(0, Math.min(1, Number(cfg.soundVolume)));
     if (!src || src === "none" || vol === 0) return;
     if (src === "builtin") { playBuiltinSound(g.sport, vol); return; }
-    try { const a = new Audio(src); a.volume = vol; a.play().catch(() => {}); } catch (e) { /* no audio */ }
+    // a file: mp3/ogg/wav, or a video file for its audio track only (the animation still plays)
+    stopCurrentSound();
+    try {
+      const a = new Audio(src);
+      a.volume = vol;
+      const lim = soundLimits(fav);
+      const cancel = capAndFade(a, lim.secs, lim.fade, () => { if (currentSound && currentSound.el === a) currentSound = null; });
+      currentSound = { el: a, cancel: cancel };
+      a.onended = () => { cancel(); if (currentSound && currentSound.el === a) currentSound = null; };
+      a.play().catch(() => {});
+      window.SportsHubPage && (window.SportsHubPage._lastAudio = a);
+    } catch (e) { /* no audio */ }
+  }
+
+  // Cap and fade: stop a media element after `secs`, fading its volume over the last `fade`
+  // seconds (and the element's opacity if it is visible). Returns a cancel function.
+  function capAndFade(media, secs, fade, onDone) {
+    const total = Math.max(0.5, Number(secs) || 0);
+    const f = Math.min(total, Math.max(0, Number(fade) || 0));
+    const startVol = media.volume;
+    let iv = null;
+    const t1 = setTimeout(() => {
+      const t0 = Date.now();
+      iv = setInterval(() => {
+        const k = Math.min(1, (Date.now() - t0) / (f * 1000 || 1));
+        try { media.volume = startVol * (1 - k); } catch (e) { /* ignore */ }
+        if (media.style) media.style.opacity = String(1 - k);
+        if (k >= 1) { clearInterval(iv); try { media.pause(); } catch (e) { /* ignore */ } if (media.style) media.style.opacity = ""; if (onDone) onDone(); }
+      }, 50);
+    }, Math.max(0, (total - f) * 1000));
+    return () => { clearTimeout(t1); if (iv) clearInterval(iv); };
+  }
+
+  function soundLimits(fav) {
+    const cfg = gmCfg();
+    return {
+      secs: fav && fav.soundSeconds != null ? fav.soundSeconds : (cfg.soundSeconds == null ? 20 : cfg.soundSeconds),
+      fade: fav && fav.soundFadeSeconds != null ? fav.soundFadeSeconds : (cfg.soundFadeSeconds == null ? 3 : cfg.soundFadeSeconds),
+    };
+  }
+
+  let currentSound = null; // {el, cancel}
+  function stopCurrentSound() {
+    if (!currentSound) return;
+    currentSound.cancel();
+    try { currentSound.el.pause(); } catch (e) { /* ignore */ }
+    currentSound = null;
   }
 
   // ---- synthesized celebration sounds (Web Audio, no files)
