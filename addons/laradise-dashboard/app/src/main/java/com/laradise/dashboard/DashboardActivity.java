@@ -21,12 +21,15 @@ import android.widget.FrameLayout;
  *
  * The page ships inside the app, so it shows even when the internet is down; the forecast and Home
  * Assistant parts fill in once they are reachable. The screen is kept on while it is in front.
- * Back, or the page's "Watch TV" button, goes to the home screen; reopening the tile reloads.
- * Clean Your TV's Launcher settings > Open on start can open it after every boot.
+ * The page's "Watch TV" button opens the Clean Your TV launcher; reopening the dashboard reloads.
+ * It can also be the home screen itself (cmd package set-home-activity com.laradise.dashboard/.DashboardActivity),
+ * so Home always comes back here; Back then stays on the dashboard.
  */
 public class DashboardActivity extends Activity {
 
     private static final String PAGE = "file:///android_asset/index.html";
+    private static final String TV_PACKAGE = "com.gathin.tvhome";
+    private static final String TV_ACTIVITY = "com.gathin.tvhome.MainActivity";
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private FrameLayout root;
@@ -115,11 +118,26 @@ public class DashboardActivity extends Activity {
         old.destroy();
     }
 
+    /** True when this dashboard is the home screen, so Home would only bring it back. */
+    private boolean isHome() {
+        Intent home = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME);
+        android.content.pm.ResolveInfo r = getPackageManager().resolveActivity(home, 0);
+        return r != null && r.activityInfo != null && getPackageName().equals(r.activityInfo.packageName);
+    }
+
+    /** Watch TV: the Clean Your TV launcher, or the home screen if it is missing. */
     private void goHome() {
-        Intent home = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+        Intent tv = new Intent(Intent.ACTION_MAIN).setClassName(TV_PACKAGE, TV_ACTIVITY)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         try {
-            startActivity(home);
+            startActivity(tv);
+            return;
+        } catch (Exception ignored) {
+        }
+        if (isHome()) return;
+        try {
+            startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         } catch (Exception ignored) {
         }
     }
@@ -135,7 +153,7 @@ public class DashboardActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        goHome();
+        if (!isHome()) goHome();
     }
 
     private final class Bridge {

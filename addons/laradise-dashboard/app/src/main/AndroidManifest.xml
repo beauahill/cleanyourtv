@@ -7,6 +7,11 @@
     <!-- Open-Meteo for the forecast, Google Fonts, and Home Assistant once a token is set. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Watch TV opens the Clean Your TV launcher. -->
+    <queries>
+        <package android:name="com.gathin.tvhome" />
+    </queries>
+
     <application
         android:allowBackup="false"
         android:banner="@drawable/banner"
@@ -25,6 +30,12 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+            <!-- Can be the home screen: Home opens the dashboard, Watch TV opens Clean Your TV. -->
+            <intent-filter android:priority="1">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <!-- Clean Your TV module card (docs/specs/card.md). -->
             <intent-filter>
