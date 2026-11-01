@@ -1910,6 +1910,13 @@
     toastTimer = setTimeout(() => t.classList.add("hidden"), 2500);
   }
 
+  // The stick's WebView occasionally scrolled the page so the header sat above the screen until a
+  // re-layout. Keep the document pinned at the top whatever tries to move it.
+  function pinTop() { if (window.scrollX || window.scrollY) window.scrollTo(0, 0); const b = document.body; if (b.scrollTop) b.scrollTop = 0; const d = document.documentElement; if (d.scrollTop) d.scrollTop = 0; }
+  window.addEventListener("scroll", pinTop, { passive: true });
+  window.addEventListener("resize", pinTop);
+  window.addEventListener("load", () => { pinTop(); setTimeout(pinTop, 500); setTimeout(pinTop, 2000); });
+
   async function boot() {
     tickClock();
     setInterval(tickClock, 1000);
@@ -1925,7 +1932,7 @@
     setInterval(idleTick, 1000);
     setInterval(gameModeTick, 5000);
     setInterval(() => { if (state.gm.active) loadGameDetails(); }, Math.max(15, gmCfg().refreshSeconds || 15) * 1000);
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) loadToday(); });
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) { pinTop(); loadToday(); } });
     maybeRunDemo();
   }
 

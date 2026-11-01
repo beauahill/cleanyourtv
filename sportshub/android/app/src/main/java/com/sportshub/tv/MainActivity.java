@@ -79,6 +79,9 @@ public class MainActivity extends Activity {
         web.setBackgroundColor(Color.parseColor("#07090d"));
         web.setFocusable(true);
         web.setFocusableInTouchMode(true);
+        web.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        web.setVerticalScrollBarEnabled(false);
+        web.setHorizontalScrollBarEnabled(false);
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -302,6 +305,9 @@ public class MainActivity extends Activity {
 
         @Override
         public void onPageFinished(WebView view, String loaded) {
+            // never leave the page scrolled: the header must stay at the top of the screen
+            view.scrollTo(0, 0);
+            view.postDelayed(() -> view.scrollTo(0, 0), 600);
             if (loaded != null && (loaded.startsWith("http://") || loaded.startsWith("https://"))
                     && !pageHadError) {
                 if (failed || retryAttempts > 0) {
