@@ -74,7 +74,8 @@ DEFAULT_CONFIG = {
     "showOdds": True,
     "gameMode": {"auto": True, "idleSeconds": 60, "rotateSeconds": 0, "refreshSeconds": 15,
                  "exitAfterFinalSeconds": 120, "callouts": True, "calloutDelaySeconds": 0, "sound": "builtin",
-                 "soundVolume": 0.8, "soundSeconds": 20, "soundFadeSeconds": 3},
+                 "soundVolume": 0.8, "soundSeconds": 20, "soundFadeSeconds": 3,
+                 "periodCallouts": True, "finalCallouts": True},
     "fantasy": {"enabled": False, "command": "", "url": "", "cacheSeconds": 120, "timeoutSeconds": 30},
 }
 
@@ -414,6 +415,7 @@ def normalise_event(ev, league_cfg, favorites, tz):
         "start": start,
         "startLocal": start_local.isoformat() if start_local else None,
         "state": state,
+        "statusName": stype.get("name"),
         "completed": bool(stype.get("completed")),
         "detail": detail,
         "longDetail": stype.get("detail"),

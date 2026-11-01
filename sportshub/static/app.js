@@ -959,6 +959,16 @@
     gameMode(league, id) { const g = allGames().find((x) => x.league === league && x.id === id); if (g) enterGameMode(g); },
     // for testing callouts from the browser console: SportsHubPage.simulateScore("nfl", "401901001", "away", 7)
     demo(sport, team) { demoCallout(sport, team); },
+    // demoEvent("fieldgoal" | "touchdown" | "halftime" | "period" | "win" | "loss", team)
+    demoEvent(kind, team) { demoEventCallout(kind, team); },
+    // flip a real game's status to test transitions: simulateEvent("nfl", "<id>", "halftime" | "endperiod" | "final")
+    simulateEvent(league, id, what) {
+      const g = allGames().find((x) => x.league === league && x.id === id); if (!g) return;
+      if (what === "halftime") { g.statusName = "STATUS_HALFTIME"; g.detail = "Halftime"; }
+      else if (what === "endperiod") { g.statusName = "STATUS_END_PERIOD"; }
+      else if (what === "final") { g.state = "post"; g.statusName = "STATUS_FINAL"; g.detail = "Final"; const w = (parseInt(g.home.score, 10) || 0) >= (parseInt(g.away.score, 10) || 0) ? "home" : "away"; g[w].winner = true; }
+      detectScoreChanges(); if (state.gm.active) renderGameMode(); else renderGames();
+    },
     // change a gameMode option on the running page (until the next reload), e.g. ("calloutDelaySeconds", 30)
     setGameModeOption(key, value) { if (!state.config.gameMode) state.config.gameMode = {}; state.config.gameMode[key] = value; },
     setOption(key, value) { state.config[key] = value; },
@@ -1217,17 +1227,154 @@
     const first = !Object.keys(state.scores).length;
     allGames().forEach((g) => {
       const key = g.league + ":" + g.id;
-      const now = { away: parseInt(g.away.score, 10) || 0, home: parseInt(g.home.score, 10) || 0 };
+      const now = { away: parseInt(g.away.score, 10) || 0, home: parseInt(g.home.score, 10) || 0,
+                    state: g.state, period: g.period || 0, statusName: g.statusName || "", clock: g.clock || "" };
       const prev = state.scores[key];
       state.scores[key] = now;
-      if (first || !prev || g.state !== "in") return;
-      ["away", "home"].forEach((side) => {
-        const delta = now[side] - prev[side];
-        if (delta > 0) onScore(g, side, delta);
-      });
+      if (first || !prev) return;
+      if (g.state === "in") {
+        ["away", "home"].forEach((side) => {
+          const delta = now[side] - prev[side];
+          if (delta > 0) onScore(g, side, delta);
+        });
+      }
+      if (g.favorite) detectGameEvents(g, prev, now);
     });
   }
 
+  // Period ends, halftime and finals for favourites. Fires once per transition.
+  function detectGameEvents(g, prev, now) {
+    const cfg = gmCfg();
+    const delay = Number(cfg.calloutDelaySeconds) || 0;
+    const later = (fn) => { if (delay > 0) setTimeout(fn, delay * 1000); else fn(); };
+    if (prev.state !== "post" && now.state === "post" && cfg.finalCallouts !== false) {
+      later(() => showFinalCallout(JSON.parse(JSON.stringify(g))));
+      return;
+    }
+    if (now.state !== "in" || cfg.periodCallouts === false || g.sport === "baseball") return;
+    const name = now.statusName, pname = prev.statusName;
+    let word = null;
+    if (name === "STATUS_HALFTIME" && pname !== "STATUS_HALFTIME") word = "Halftime";
+    else if (name === "STATUS_END_PERIOD" && pname !== "STATUS_END_PERIOD") word = "End of " + periodWord(g, now.period);
+    else if (name !== "STATUS_HALFTIME" && name !== "STATUS_END_PERIOD" && now.period === prev.period + 1 && prev.period > 0 &&
+             pname !== "STATUS_END_PERIOD" && pname !== "STATUS_HALFTIME" && /^0?0:0[0-9]$/.test(prev.clock)) {
+      // polled past the intermission: say it anyway, briefly, unless it was halftime (football/basketball)
+      const half = (g.sport === "football" && prev.period === 2) || (g.sport === "basketball" && prev.period === 2 && /college/.test(g.league));
+      word = half ? "Halftime" : "End of " + periodWord(g, prev.period);
+    }
+    if (word) later(() => showPeriodCallout(word, JSON.parse(JSON.stringify(g))));
+  }
+
+  function periodWord(g, p) {
+    const n = ordinal(p);
+    if (g.sport === "hockey") return p > 3 ? "overtime" : n + " period";
+    if (g.sport === "football") return p > 4 ? "overtime" : n + " quarter";
+    if (g.sport === "basketball") return /college/.test(g.league) ? (p > 2 ? "overtime" : n + " half") : (p > 4 ? "overtime" : n + " quarter");
+    if (g.sport === "soccer") return n + " half";
+    return "period " + p;
+  }
+
+  function favSideOf(g) {
+    return isFavoriteTeam(g, "home") ? "home" : isFavoriteTeam(g, "away") ? "away" : null;
+  }
+
+  function periodScoreBlock(g) {
+    const blk = el("div", "period-score");
+    const mk = (t, right) => {
+      const w = el("div", "ps-team" + (right ? " right" : ""));
+      const parts = [logo(t), el("span", null, t.short || t.abbr), el("span", "ps-score", String(t.score != null ? t.score : 0))];
+      if (right) parts.reverse();
+      parts.forEach((x) => w.appendChild(x));
+      return w;
+    };
+    blk.appendChild(mk(g.away, false));
+    blk.appendChild(el("div", "ps-vs", "VS"));
+    blk.appendChild(mk(g.home, true));
+    return blk;
+  }
+
+  let periodTimer = null;
+  function showPeriodCallout(word, g) {
+    const c = $("#callout");
+    const side = favSideOf(g) || "home";
+    c.className = "callout period";
+    c.style.setProperty("--callout-rgb", teamRgb(g[side]));
+    c.dataset.sport = g.sport; c.dataset.kind = "period";
+    c.querySelector(".callout-word").textContent = word;
+    c.querySelector(".callout-sub").textContent = g.leagueLabel ? g.leagueLabel + "  ·  " + g.shortName : g.shortName;
+    c.querySelector(".callout-icon").innerHTML = "";
+    c.querySelector(".callout-confetti").innerHTML = "";
+    c.querySelectorAll(".period-score, .period-bar, .fireworks").forEach((e) => e.remove());
+    c.appendChild(periodScoreBlock(g));
+    const bar = el("div", "period-bar"); bar.appendChild(el("i")); c.appendChild(bar);
+    clearTimeout(calloutTimer); clearTimeout(periodTimer);
+    periodTimer = setTimeout(() => { c.classList.add("hidden"); c.querySelectorAll(".period-score, .period-bar").forEach((e) => e.remove()); }, 6000);
+  }
+
+  function showFinalCallout(g) {
+    const side = favSideOf(g) || "home";
+    const me = g[side], them = g[side === "home" ? "away" : "home"];
+    const myS = parseInt(me.score, 10) || 0, theirS = parseInt(them.score, 10) || 0;
+    const won = me.winner || myS > theirS;
+    const tie = myS === theirS && !me.winner && !them.winner;
+    const c = $("#callout");
+    c.querySelectorAll(".period-score, .period-bar, .fireworks").forEach((e) => e.remove());
+    if (won && !tie) {
+      const fav = favoriteFor(g, side);
+      showCallout((me.short || me.abbr) + " win", g, side, true, "win");
+      c.classList.add("win");
+      c.querySelector(".callout-icon").innerHTML = "";
+      c.querySelector(".callout-sub").textContent = "Final  ·  " + (me.short || me.abbr) + " " + myS + ", " + (them.short || them.abbr) + " " + theirS;
+      launchFireworks(c, me);
+      clearTimeout(calloutTimer);
+      calloutTimer = setTimeout(() => { c.classList.add("hidden"); c.querySelectorAll(".fireworks").forEach((e) => e.remove()); }, 12000);
+      if (fav && fav.video && fav.videoOnWin !== false) { /* keep the fireworks; the clip is for goals */ }
+      playScoreSound(g, side);
+      return;
+    }
+    c.className = "callout period" + (tie ? "" : " loss");
+    c.style.setProperty("--callout-rgb", teamRgb(me));
+    c.dataset.sport = g.sport; c.dataset.kind = "final";
+    c.querySelector(".callout-word").textContent = tie ? "Final · Tie" : "Final";
+    c.querySelector(".callout-sub").textContent = (me.short || me.abbr) + " " + myS + "  ·  " + (them.short || them.abbr) + " " + theirS;
+    c.querySelector(".callout-icon").innerHTML = "";
+    c.querySelector(".callout-confetti").innerHTML = "";
+    c.appendChild(periodScoreBlock(g));
+    clearTimeout(calloutTimer); clearTimeout(periodTimer);
+    periodTimer = setTimeout(() => { c.classList.add("hidden"); c.querySelectorAll(".period-score").forEach((e) => e.remove()); }, 7000);
+  }
+
+  function launchFireworks(c, t) {
+    const fw = el("div", "fireworks");
+    c.appendChild(fw);
+    const colors = ["#" + (t.color || "ffffff"), "#" + (t.altColor || "ffffff"), "#ffffff", "#ffd23f"];
+    let count = 0;
+    const burst = () => {
+      if (!fw.isConnected || count++ > 9) return;
+      const b = el("div", "burst");
+      b.style.left = (15 + Math.random() * 70) + "%";
+      b.style.top = (12 + Math.random() * 45) + "%";
+      b.style.color = colors[count % colors.length];
+      const n = 26, r = 9 + Math.random() * 8;
+      for (let i = 0; i < n; i++) {
+        const p = el("i");
+        const a = (i / n) * Math.PI * 2, rr = r * (0.7 + Math.random() * 0.5);
+        p.style.setProperty("--dx", (Math.cos(a) * rr) + "rem");
+        p.style.setProperty("--dy", (Math.sin(a) * rr) + "rem");
+        p.style.animationDelay = (Math.random() * 0.1) + "s";
+        b.appendChild(p);
+      }
+      fw.appendChild(b);
+      setTimeout(() => b.remove(), 2200);
+      setTimeout(burst, 350 + Math.random() * 500);
+    };
+    burst(); setTimeout(burst, 200); setTimeout(burst, 450);
+  }
+
+  function scoreKind(g, delta) {
+    if (g.sport === "football") return delta >= 6 ? "touchdown" : delta === 3 ? "fieldgoal" : delta === 2 ? "safety" : null;
+    return "score";
+  }
   function scoreWord(g, delta) {
     switch (g.sport) {
       case "football": return delta >= 6 ? "Touchdown" : delta === 3 ? "Field goal" : delta === 2 ? "Safety" : null;
@@ -1253,10 +1400,11 @@
     // ESPN's feed usually runs ahead of the broadcast; calloutDelaySeconds holds the banner and
     // the sound back so the TV shows the play first. The score on the cards still updates at once.
     const snapshot = JSON.parse(JSON.stringify(g));
+    const kind = scoreKind(g, delta);
     const fire = () => {
       const fav = favSide ? favoriteFor(snapshot, side) : null;
       if (fav && fav.video) { showVideoCallout(word + " " + (t.short || t.abbr), snapshot, side, fav); return; }
-      showCallout(word + " " + (t.short || t.abbr), snapshot, side, favSide);
+      showCallout(word + " " + (t.short || t.abbr), snapshot, side, favSide, kind);
       if (favSide) playScoreSound(snapshot, side);
     };
     const delay = Number(gmCfg().calloutDelaySeconds) || 0;
@@ -1268,6 +1416,13 @@
     const abbr = (g[side].abbr || "").toLowerCase(), id = String(g[side].id || "").toLowerCase();
     return favs.some((f) => f.league === g.league && [abbr, id].includes((f.team || "").toLowerCase()));
   }
+
+  const FG_ICON = '<svg viewBox="0 0 100 100">'
+    + '<g class="fg-posts" stroke="#ffd23f" stroke-width="3.5" stroke-linecap="round" fill="none">'
+    + '<path d="M50 100 V58 M34 58 H66 M34 58 V20 M66 58 V20"/></g>'
+    + '<rect class="fg-flash" x="34" y="20" width="32" height="38" fill="rgba(255,255,255,0.35)"/>'
+    + '<g class="fg-ball"><ellipse cx="50" cy="92" rx="7" ry="4.2" fill="#7a3b12" stroke="#f2e6d8" stroke-width="0.8"/>'
+    + '<path d="M46 92h8" stroke="#f2e6d8" stroke-width="0.8"/></g></svg>';
 
   const ICONS = {
     football: '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="46" ry="27" fill="#7a3b12" stroke="#f2e6d8" stroke-width="3"/><path d="M30 50h40M38 43v14M46 43v14M54 43v14M62 43v14" stroke="#f2e6d8" stroke-width="3" stroke-linecap="round"/></svg>',
@@ -1285,20 +1440,23 @@
   };
 
   let calloutTimer = null;
-  function showCallout(word, g, side, favSide) {
+  function showCallout(word, g, side, favSide, kind) {
     const c = $("#callout");
     const t = g[side];
+    c.className = "callout"; // drop period/win/loss/has-video modes
+    c.querySelectorAll(".period-score, .period-bar, .fireworks").forEach((e) => e.remove());
     c.style.setProperty("--callout-rgb", teamRgb(t));
     c.dataset.sport = g.sport;
+    c.dataset.kind = kind || "score";
     c.querySelector(".callout-word").textContent = word;
     c.querySelector(".callout-sub").textContent = g.shortName + "  ·  " + g.away.score + "–" + g.home.score + (g.detail ? "  ·  " + g.detail : "");
     // restart the CSS animations by re-creating the animated nodes
     const icon = c.querySelector(".callout-icon");
-    icon.innerHTML = ICONS[g.sport] || "";
+    icon.innerHTML = kind === "fieldgoal" ? FG_ICON : kind === "safety" ? "" : (ICONS[g.sport] || "");
     const conf = c.querySelector(".callout-confetti");
     conf.innerHTML = "";
     const colors = ["#" + (t.color || "ffffff"), "#" + (t.altColor || "ffffff"), "#ffffff"];
-    const n = favSide ? 70 : 35;
+    const n = kind === "fieldgoal" ? (favSide ? 30 : 15) : (favSide ? 70 : 35);
     for (let i = 0; i < n; i++) {
       const p = el("i");
       p.style.left = (Math.random() * 100) + "%";
@@ -1339,6 +1497,8 @@
     c.querySelector(".callout-sub").textContent = g.shortName + "  ·  " + g.away.score + "–" + g.home.score + (g.detail ? "  ·  " + g.detail : "");
     c.querySelector(".callout-icon").innerHTML = "";
     c.querySelector(".callout-confetti").innerHTML = "";
+    c.querySelectorAll(".period-score, .period-bar, .fireworks").forEach((e) => e.remove());
+    c.className = "callout";
     c.classList.add("has-video");
     v.classList.remove("hidden");
     v.muted = !!fav.videoMuted;
@@ -1498,12 +1658,13 @@
   }
 
   // Demo callouts: press 0 on the page, or open /?demo=score to play every sport once.
-  const DEMO_SPORTS = ["football", "hockey", "baseball", "soccer"]; // basketball never calls out: too frequent
+  const DEMO_SPORTS = ["football", "fieldgoal", "hockey", "baseball", "soccer", "halftime", "win"]; // basketball never calls out: too frequent
   let demoIndex = 0;
   // demoCallout(sport, team): team is a favourite's abbreviation or id ("buf", "wyo", "2751");
   // with a team the sport comes from that favourite's league unless given.
   const LEAGUE_SPORT = { nfl: "football", cfb: "football", nhl: "hockey", mlb: "baseball", nba: "basketball", ncaam: "basketball", wnba: "basketball", mls: "soccer", epl: "soccer" };
   function demoCallout(sport, teamKey) {
+    if (["fieldgoal", "touchdown", "halftime", "period", "win", "loss"].includes(sport)) { demoEventCallout(sport, teamKey); return; }
     const favs = (state.config && state.config.favorites) || [];
     let fav = null;
     if (teamKey) fav = favs.find((f) => String(f.team || "").toLowerCase() === String(teamKey).toLowerCase()) || null;
@@ -1531,10 +1692,33 @@
     showCallout(word + " " + (t.short || t.abbr), g, "away", true);
     playScoreSound(g, "away");
   }
+  function demoEventCallout(kind, teamKey) {
+    const favs = (state.config && state.config.favorites) || [];
+    const fav = teamKey ? favs.find((f) => String(f.team || "").toLowerCase() === String(teamKey).toLowerCase()) : favs[0];
+    if (!fav) return;
+    const mt = ((state.myteams && state.myteams.teams) || []).find((t) => t.league === fav.league &&
+      [String(t.abbr || "").toLowerCase(), String(t.id || "").toLowerCase()].includes(String(fav.team).toLowerCase()));
+    const me = mt ? { abbr: mt.abbr, id: mt.id, short: mt.short || mt.name, color: mt.color || "ffc425", altColor: mt.altColor || "ffffff", logo: mt.logo }
+                  : { abbr: String(fav.team).toUpperCase(), id: String(fav.team), short: String(fav.team).toUpperCase(), color: "ffc425", altColor: "492f24" };
+    const sport = LEAGUE_SPORT[fav.league] || "football";
+    const opp = { abbr: "OPP", short: "Visitors", color: "334455", altColor: "ffffff", score: "17" };
+    const g = { sport: sport, league: fav.league, leagueLabel: fav.league.toUpperCase(), id: "demo", shortName: "OPP @ " + me.abbr,
+                state: "in", period: 2, clock: "0:00", detail: "Halftime", home: Object.assign({ score: "21" }, me), away: opp, favorite: true };
+    if (kind === "fieldgoal" || kind === "touchdown" || kind === "safety") {
+      const w = kind === "fieldgoal" ? "Field goal" : kind === "touchdown" ? "Touchdown" : "Safety";
+      showCallout(w + " " + me.short, g, "home", true, kind); playScoreSound(g, "home"); return;
+    }
+    if (kind === "halftime") { showPeriodCallout("Halftime", g); return; }
+    if (kind === "period") { showPeriodCallout("End of " + periodWord(g, 1), g); return; }
+    if (kind === "win") { g.state = "post"; g.home.winner = true; showFinalCallout(g); return; }
+    if (kind === "loss") { g.state = "post"; g.away.score = "28"; g.away.winner = true; showFinalCallout(g); return; }
+  }
+
   function maybeRunDemo() {
     const q = new URLSearchParams(location.search);
     if (q.get("demo") !== "score") return;
     const team = q.get("team");
+    if (q.get("event")) { setTimeout(() => demoEventCallout(q.get("event"), team), 2500); return; }
     if (team) { setTimeout(() => demoCallout(q.get("sport") || null, team), 2500); return; }
     let i = 0;
     const next = () => { if (i < DEMO_SPORTS.length) { demoCallout(DEMO_SPORTS[i++]); setTimeout(next, 7000); } };

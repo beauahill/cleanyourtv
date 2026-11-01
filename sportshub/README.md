@@ -161,6 +161,14 @@ RUN SCORES / GRAND SLAM, with a sport-specific animation (a tumbling football, a
 sliding puck, a ball arcing out of the park, a rolling soccer ball) and confetti in the team's
 colours. Basketball is left quiet because it scores every 20 seconds.
 
+**Field goals** get their own animation (uprights, ball through them) distinct from the tumbling
+football of a touchdown. **Period events** for favourites: "End of 1st quarter", "Halftime", "End
+of 2nd period" show a quiet six-second card with the score (no sound; baseball excluded).
+**Finals**: a win brings fireworks, a confetti storm, "COWBOYS WIN" and the team's sound or clip;
+a loss is a calm "Final" card. `"periodCallouts": false` / `"finalCallouts": false` in `gameMode`
+turn these off. Demo: `?demo=score&team=wyo&event=fieldgoal` (or `halftime`, `period`, `win`,
+`loss`), or `SportsHubPage.demoEvent("win", "buf")`; the `0` key cycle includes them.
+
 **Sound.** A favourite's score also plays a celebration: by default a synthesized arena goal horn
 with a crowd roar (hockey, football, soccer) or the ballpark organ "Charge!" (baseball), no files
 needed. Options in `gameMode`: `"sound": "builtin"` (default), `"none"`, or a file such as
