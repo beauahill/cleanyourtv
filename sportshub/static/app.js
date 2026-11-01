@@ -1179,7 +1179,7 @@
     svg.appendChild(sv("line", { x1: EZ + ball, y1: 0, x2: EZ + ball, y2: H }, "los"));
     // last play
     const p = s.play;
-    if (p && !opts.slim) {
+    if (p && !opts.slim && p.sameTeam !== false) {
       const sx = p.startYtg != null ? fieldX(g, p.startYtg) : ball, ex = p.endYtg != null ? fieldX(g, p.endYtg) : ball;
       if (p.kind === "pass" || p.kind === "incomplete" || p.kind === "punt" || p.kind === "kickoff" || p.kind === "fieldgoal") {
         const lift = p.kind === "pass" || p.kind === "incomplete" ? 10 : 16;
