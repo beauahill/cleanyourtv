@@ -38,13 +38,23 @@ jobs:
           name: sportshub-kiosk
           path: sportshub-kiosk.apk
 
+      # main and the primary working branch feed "kiosk-latest"; any other branch gets its own
+      # "kiosk-<branch>" pre-release so experiments never replace the APK sticks update from.
+      - name: Pick release tag
+        id: tag
+        run: |
+          case "${{ github.ref_name }}" in
+            main|claude/admiring-albattani-aplkym) echo "tag=kiosk-latest" >> "$GITHUB_OUTPUT" ;;
+            *) echo "tag=kiosk-$(echo '${{ github.ref_name }}' | tr '/' '-')" >> "$GITHUB_OUTPUT" ;;
+          esac
+
       # A moving "kiosk-latest" pre-release so the APK has a stable download URL:
       # https://github.com/<owner>/<repo>/releases/download/kiosk-latest/sportshub-kiosk.apk
       - name: Publish kiosk-latest release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: kiosk-latest
-          name: Sports Hub kiosk (latest build)
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Sports Hub kiosk (${{ github.ref_name }})
           prerelease: true
           body: |
             Debug-signed kiosk APK built from `${{ github.ref_name }}` at `${{ github.sha }}`.
