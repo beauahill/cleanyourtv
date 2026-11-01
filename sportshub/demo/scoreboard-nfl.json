@@ -130,8 +130,38 @@
       "downDistanceText": "2nd & 7 at KC 35",
       "possession": "7",
       "isRedZone": false,
+      "down": 2,
+      "distance": 7,
+      "yardLine": 65,
+      "possessionText": "KC 35",
+      "homeTimeouts": 2,
+      "awayTimeouts": 3,
       "lastPlay": {
-       "text": "B.Nix pass short left to C.Sutton for 12 yards"
+       "id": "4019010011234",
+       "type": {
+        "id": "24",
+        "text": "Pass Reception"
+       },
+       "text": "B.Nix pass short left to C.Sutton for 12 yards",
+       "statYardage": 12,
+       "start": {
+        "yardLine": 53,
+        "text": "KC 47"
+       },
+       "end": {
+        "yardLine": 65,
+        "text": "KC 35"
+       },
+       "drive": {
+        "description": "6 plays, 40 yards, 3:12",
+        "start": {
+         "yardLine": 25,
+         "text": "DEN 25"
+        },
+        "timeElapsed": {
+         "displayValue": "3:12"
+        }
+       }
       }
      },
      "leaders": [

@@ -14,7 +14,7 @@
 
   const DEFAULT_CONFIG = {
     title: "Sports Hub",
-    timezone: "America/Denver",
+    timezone: "",            // "" = the device's own time zone
     leagues: [
       { key: "nfl", label: "NFL", sport: "football", league: "nfl" },
       { key: "cfb", label: "CFB", sport: "football", league: "college-football", params: { groups: "80" } },
@@ -175,7 +175,54 @@
     names.forEach((n) => { if (!seen.has(n)) { seen.add(n); out.push(n); } });
     return out.slice(0, 3).join(", ");
   }
-  function situation(comp, sport, homeId, awayId) {
+  const PLAY_KINDS = [
+    ["penalty", "penalty"], ["timeout", "timeout"], ["two-minute", "timeout"], ["end period", "other"], ["end of", "other"],
+    ["kickoff", "kickoff"], ["punt", "punt"], ["field goal", "fieldgoal"], ["extra point", "fieldgoal"], ["two-point", "rush"],
+    ["interception", "turnover"], ["fumble recovery (opponent)", "turnover"], ["fumble", "rush"], ["safety", "turnover"],
+    ["sack", "sack"], ["pass incompletion", "incomplete"], ["incomplete", "incomplete"], ["pass", "pass"], ["rush", "rush"],
+  ];
+  function playKind(typeText) {
+    const t = (typeText || "").toLowerCase();
+    for (const [needle, kind] of PLAY_KINDS) if (t.includes(needle)) return kind;
+    return "other";
+  }
+  function yardsToGo(spotText, offenseAbbr) {
+    if (!spotText || !offenseAbbr) return null;
+    const m = /^\s*([A-Za-z&'. ]+?)\s+(\d{1,2})\s*$/.exec(spotText);
+    if (!m) return null;
+    const side = m[1].trim().toUpperCase(), n = parseInt(m[2], 10);
+    if (n === 50) return 50;
+    return side === offenseAbbr.toUpperCase() ? 100 - n : n;
+  }
+  function field(s, out, home, away) {
+    const side = out.possession;
+    if (!side) return;
+    const offense = (side === "home" ? home : away).abbr;
+    let ytg = yardsToGo(s.possessionText, offense);
+    if (ytg == null && Number.isInteger(s.yardLine)) ytg = 100 - s.yardLine;
+    out.yardsToGo = ytg;
+    if (Number.isInteger(s.down) && s.down > 0) out.down = s.down;
+    if (Number.isInteger(s.distance)) {
+      out.distance = s.distance;
+      if (ytg != null) out.firstDownAt = s.distance < ytg ? Math.max(0, ytg - s.distance) : 0;
+    }
+    const lp = s.lastPlay;
+    if (lp && Object.keys(lp).length) {
+      const drive = lp.drive || {};
+      const dstart = yardsToGo((drive.start || {}).text, offense);
+      if (dstart != null) out.drive = { startYtg: dstart, text: drive.description == null ? null : drive.description };
+      const ptype = (lp.type || {}).text || "";
+      const kind = playKind(ptype);
+      const play = { id: lp.id == null ? null : lp.id, kind: kind, type: ptype, text: lp.text == null ? null : lp.text, yards: lp.statYardage == null ? null : lp.statYardage };
+      const st = lp.start || {}, en = lp.end || {};
+      if (Number.isInteger(st.yardLine)) play.startYtg = 100 - st.yardLine;
+      if (Number.isInteger(en.yardLine)) play.endYtg = 100 - en.yardLine;
+      if (play.startYtg == null && ytg != null && Number.isInteger(play.yards) && ["pass", "rush", "sack"].includes(kind)) { play.startYtg = ytg + play.yards; play.endYtg = ytg; }
+      out.play = play;
+    }
+  }
+
+  function situation(comp, sport, homeId, awayId, home, away) {
     const s = comp.situation;
     if (!s || !Object.keys(s).length) return null;
     const out = {};
@@ -185,6 +232,7 @@
       out.redZone = !!s.isRedZone;
       out.possessionText = s.possessionText == null ? null : s.possessionText;
       if (s.homeTimeouts != null) out.timeouts = { home: s.homeTimeouts, away: s.awayTimeouts == null ? null : s.awayTimeouts };
+      field(s, out, home || {}, away || {});
     } else if (sport === "baseball") {
       out.bases = ["onFirst", "onSecond", "onThird"].map((k) => s[k] ? "●" : "○").join("");
       const p = [];
@@ -277,7 +325,7 @@
       broadcast: broadcast(comp), venue: venue.fullName == null ? null : venue.fullName,
       city: [addr.city, addr.state].filter(Boolean).join(", "),
       neutral: !!comp.neutralSite, home: home, away: away,
-      situation: situation(comp, sport, home.id, away.id), odds: odds, headline: headline,
+      situation: situation(comp, sport, home.id, away.id, home, away), odds: odds, headline: headline,
       leaders: leaders.slice(0, 3), favorite: isFav,
       notes: (comp.notes || []).filter((n) => n.headline).map((n) => n.headline).join(" "),
     };

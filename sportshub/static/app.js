@@ -29,7 +29,7 @@
     directReady: false,
     latestToday: null,
     timers: {},
-    gm: { active: false, league: null, id: null, enteredAt: 0, finalAt: 0, details: null, lastRotate: 0 },
+    gm: { active: false, league: null, id: null, enteredAt: 0, finalAt: 0, details: null, lastRotate: 0, lastPlayId: null },
     scores: {},            // "league:id" -> {away, home} for score-change detection
   };
 
@@ -435,6 +435,13 @@
       } else {
         if (g.situation.redZone) foot.classList.add("redzone");
         foot.appendChild(el("span", null, g.situation.text || g.situation.lastPlay || ""));
+      }
+      if (g.sport === "football" && g.situation.yardsToGo != null) {
+        const strip = renderField(g, { slim: true });
+        strip.classList.add("strip");
+        card.appendChild(foot); card.appendChild(strip);
+        card.onclick = () => openGame(g);
+        return card;
       }
     } else if (g.state === "pre") {
       const bits = [];
@@ -1153,7 +1160,7 @@
     top.appendChild(el("div", "gm-right", [g.broadcast, g.city].filter(Boolean).join("  ·  ")));
     root.appendChild(top);
 
-    const main = el("div", "gm-main");
+    const main = el("div", "gm-main" + (g.sport === "football" && g.state === "in" && g.situation && g.situation.yardsToGo != null ? " has-field" : ""));
     main.appendChild(renderGmTeam(g, g.away, "away"));
     main.appendChild(renderGmCenter(g));
     main.appendChild(renderGmTeam(g, g.home, "home"));
@@ -1189,6 +1196,86 @@
     return box;
   }
 
+  // ------------------------------------------------------------------ football field
+  // Geometry: the away team defends the left end zone, home the right. A team with the ball moves
+  // toward the other end zone, so x (0..100 across the field of play) is 100 - yardsToGo for the
+  // away team and yardsToGo for the home team.
+  const SVG = "http://www.w3.org/2000/svg";
+  function sv(tag, attrs, cls) { const n = document.createElementNS(SVG, tag); Object.keys(attrs || {}).forEach((k) => n.setAttribute(k, attrs[k])); if (cls) n.setAttribute("class", cls); return n; }
+  function fieldX(g, ytg) { if (ytg == null) return null; return g.situation.possession === "away" ? 100 - ytg : ytg; }
+
+  function renderField(g, opts) {
+    const s = g.situation || {};
+    const W = 120, H = opts.slim ? 8 : 34, EZ = 10;       // viewBox units: 10 per end zone, 100 field
+    const svg = sv("svg", { viewBox: "0 0 " + W + " " + H, preserveAspectRatio: "none" }, "field");
+    const away = g.away, home = g.home;
+    svg.appendChild(sv("rect", { x: 0, y: 0, width: W, height: H }, "turf"));
+    for (let i = 0; i < 10; i += 2) svg.appendChild(sv("rect", { x: EZ + i * 10, y: 0, width: 10, height: H }, "turf-alt"));
+    svg.appendChild(sv("rect", { x: 0, y: 0, width: EZ, height: H, fill: "#" + (away.color || "334455") }, "ez"));
+    svg.appendChild(sv("rect", { x: W - EZ, y: 0, width: EZ, height: H, fill: "#" + (home.color || "334455") }, "ez"));
+    if (!opts.slim) {
+      const t1 = sv("text", { x: EZ / 2, y: H / 2 + 1.8, transform: "rotate(-90 " + (EZ / 2) + " " + (H / 2) + ")" }, "ez-text"); t1.textContent = (away.abbr || "").toUpperCase(); svg.appendChild(t1);
+      const t2 = sv("text", { x: W - EZ / 2, y: H / 2 + 1.8, transform: "rotate(90 " + (W - EZ / 2) + " " + (H / 2) + ")" }, "ez-text"); t2.textContent = (home.abbr || "").toUpperCase(); svg.appendChild(t2);
+    }
+    for (let y = 10; y <= 90; y += 10) {
+      svg.appendChild(sv("line", { x1: EZ + y, y1: 0, x2: EZ + y, y2: H }, "yard" + (y === 50 ? " mid" : "")));
+      if (!opts.slim) { const n = sv("text", { x: EZ + y, y: H - 2 }, "num"); n.textContent = String(y > 50 ? 100 - y : y); svg.appendChild(n); }
+    }
+    if (!opts.slim) for (let y = 5; y < 100; y += 10) svg.appendChild(sv("line", { x1: EZ + y, y1: H * 0.42, x2: EZ + y, y2: H * 0.58 }, "yard"));
+    const ball = fieldX(g, s.yardsToGo);
+    if (ball == null) return svg;
+    const offense = s.possession === "away" ? away : home;
+    const driveStart = s.drive ? fieldX(g, s.drive.startYtg) : null;
+    const yMid = H / 2;
+    if (driveStart != null) svg.appendChild(sv("line", { x1: EZ + driveStart, y1: yMid, x2: EZ + ball, y2: yMid, stroke: "#" + (offense.color || "ffffff") }, "drive"));
+    if (s.firstDownAt != null) { const fx = fieldX(g, s.firstDownAt); svg.appendChild(sv("line", { x1: EZ + fx, y1: 0, x2: EZ + fx, y2: H }, "firstdown")); }
+    svg.appendChild(sv("line", { x1: EZ + ball, y1: 0, x2: EZ + ball, y2: H }, "los"));
+    // last play
+    const p = s.play;
+    if (p && !opts.slim) {
+      const sx = p.startYtg != null ? fieldX(g, p.startYtg) : ball, ex = p.endYtg != null ? fieldX(g, p.endYtg) : ball;
+      if (p.kind === "pass" || p.kind === "incomplete" || p.kind === "punt" || p.kind === "kickoff" || p.kind === "fieldgoal") {
+        const lift = p.kind === "pass" || p.kind === "incomplete" ? 10 : 16;
+        const d = "M" + (EZ + sx) + " " + yMid + " Q " + (EZ + (sx + ex) / 2) + " " + (yMid - lift) + " " + (EZ + ex) + " " + yMid;
+        svg.appendChild(sv("path", { d: d }, "play-arc"));
+        if (p.kind === "incomplete") { svg.appendChild(sv("line", { x1: EZ + ex - 1.5, y1: yMid - 1.5, x2: EZ + ex + 1.5, y2: yMid + 1.5 }, "incomplete-x")); svg.appendChild(sv("line", { x1: EZ + ex - 1.5, y1: yMid + 1.5, x2: EZ + ex + 1.5, y2: yMid - 1.5 }, "incomplete-x")); }
+      } else if (p.kind === "rush" || p.kind === "sack") {
+        svg.appendChild(sv("line", { x1: EZ + sx, y1: yMid + 4, x2: EZ + ex, y2: yMid + 4 }, "play-run"));
+      }
+      if (p.kind === "penalty") svg.appendChild(sv("path", { d: "M" + (EZ + ball - 2) + " " + (yMid - 2) + " h4 v3 h-4 z M" + (EZ + ball - 2) + " " + (yMid - 2) + " v9", stroke: "#ffd23f", "stroke-width": 0.5 }, "flag"));
+      if (p.kind === "turnover" || p.kind === "sack") svg.appendChild(sv("rect", { x: 0, y: 0, width: W, height: H }, "flash"));
+    }
+    // the ball
+    const b = sv("ellipse", { cx: EZ + ball, cy: yMid, rx: opts.slim ? 1.6 : 2.4, ry: opts.slim ? 1.1 : 1.5 }, "ball" + (s.redZone ? " redzone" : ""));
+    svg.appendChild(b);
+    if (!opts.slim) svg.appendChild(sv("line", { x1: EZ + ball - 1.2, y1: yMid, x2: EZ + ball + 1.2, y2: yMid, stroke: "#f2e6d8", "stroke-width": 0.3 }));
+    return svg;
+  }
+
+  function renderGmField(g) {
+    const s = g.situation || {};
+    const wrap = el("div", "gm-field");
+    const field = renderField(g, { slim: false });
+    const pid = s.play && s.play.id;
+    if (pid && pid !== state.gm.lastPlayId) { field.classList.add("anim-" + (s.play.kind || "other")); state.gm.lastPlayId = pid; }
+    else if (pid) field.classList.add("anim-done");
+    wrap.appendChild(field);
+    if (s.play && s.play.text) {
+      const line = el("div", "play-line");
+      line.appendChild(el("span", "play-kind " + (s.play.kind || ""), playKindLabel(s.play)));
+      line.appendChild(el("span", "play-text", s.play.text));
+      line.appendChild(el("span", "play-yards", typeof s.play.yards === "number" ? (s.play.yards > 0 ? "+" : "") + s.play.yards + " yds" : ""));
+      wrap.appendChild(line);
+    }
+    if (s.drive && s.drive.text) wrap.appendChild(el("div", "drive-text", "Drive: " + s.drive.text + (s.possessionText ? "  ·  ball on " + s.possessionText : "")));
+    return wrap;
+  }
+
+  function playKindLabel(p) {
+    return { pass: "Pass", incomplete: "Incomplete", rush: "Run", sack: "Sack", penalty: "Flag", punt: "Punt", kickoff: "Kickoff",
+             fieldgoal: "Kick", turnover: "Turnover", timeout: "Timeout" }[p.kind] || (p.type || "Play");
+  }
+
   function renderGmCenter(g) {
     const c = el("div", "gm-center");
     if (g.state === "in") {
@@ -1206,8 +1293,12 @@
         }
         sit.appendChild(el("span", null, g.situation.text || ""));
         if (g.situation.text || g.situation.bases_detail) c.appendChild(sit);
-        const last = (state.gm.details && state.gm.details.lastPlay) || g.situation.lastPlay;
-        if (last) c.appendChild(el("div", "gm-lastplay", last));
+        if (g.sport === "football" && g.situation.yardsToGo != null) {
+          c.appendChild(renderGmField(g));
+        } else {
+          const last = (state.gm.details && state.gm.details.lastPlay) || g.situation.lastPlay;
+          if (last) c.appendChild(el("div", "gm-lastplay", last));
+        }
       }
     } else if (g.state === "pre") {
       c.appendChild(el("div", "gm-state", "Upcoming"));

@@ -246,7 +246,7 @@ The full set of keys, with their defaults:
 ```jsonc
 {
   "title": "Man Cave",
-  "timezone": "America/Denver",           // all times on the page are shown in this zone
+  "timezone": "",                         // "" = the device's zone; or e.g. "America/Denver"
   "leagues": [                            // order = tab order
     {"key": "nfl", "label": "NFL", "sport": "football", "league": "nfl"},
     {"key": "cfb", "label": "CFB", "sport": "football", "league": "college-football",
@@ -272,7 +272,7 @@ The full set of keys, with their defaults:
   passed straight through (`groups` for conferences, `limit`). Set `"news": false` on a league to
   keep it out of the headlines.
 - **Favourites.** `team` is the abbreviation ESPN uses in its URLs (`den`, `kc`, `wyo`, `col`).
-  For college teams the numeric id also works. The defaults are a Wyoming/Colorado guess, change them.
+  For college teams the numeric id also works. The shipped default has none.
 - **Apps.** `package` names: `adb shell pm list packages` on the stick (or `tools/tv.py 'pm list
   packages'`), e.g. `adb shell pm list packages | grep -i mountain` to find one app. Leave `apps`
   empty when using the kiosk app and the dock fills itself with every installed TV app,

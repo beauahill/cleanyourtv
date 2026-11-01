@@ -106,7 +106,7 @@
     } else if (section === 2) {
       text("Title", "title", "Sports Hub");
       choice("Theme", "theme.preset", "default", THEMES, ["Neutral", "Wyoming", "Bills", "Wyoming + Bills"]);
-      choice("Time zone", "timezone", "America/Denver", TIMEZONES, TIMEZONES.map((z) => z.split("/")[1].replace("_", " ")));
+      choice("Time zone", "timezone", "", [""].concat(TIMEZONES), ["Automatic"].concat(TIMEZONES.map((z) => z.split("/")[1].replace("_", " "))));
       stepper("Broadcast delay", "scoreDelaySeconds", 0, 0, 180, 5, (v) => v + " s");
       stepper("Screen edge margin", "safeAreaRem", 2.5, 1, 6, 0.5, (v) => v.toFixed(1));
       choice("Dock position", "dockPosition", "bottom", ["bottom", "top"], ["Bottom (hidden until needed)", "Top, under the tabs"]);

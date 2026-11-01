@@ -1,7 +1,6 @@
 {
-  "title": "Man Cave",
-  "timezone": "America/Denver",
-  "theme": {"preset": "wyo-bills"},
+  "title": "Sports Hub",
+  "timezone": "",
 
   "leagues": [
     {"key": "nfl",   "label": "NFL",   "sport": "football",   "league": "nfl"},
@@ -12,33 +11,10 @@
     {"key": "ncaam", "label": "NCAAM", "sport": "basketball", "league": "mens-college-basketball", "params": {"groups": "50"}, "news": false}
   ],
 
-  "favorites": [
-    {"league": "nfl", "team": "den"},
-    {"league": "cfb", "team": "wyo"},
-    {"league": "nba", "team": "den"},
-    {"league": "nhl", "team": "col"},
-    {"league": "mlb", "team": "col"}
-  ],
+  "favorites": [],
+  "apps": [],
 
-  "apps": [
-    {"label": "ESPN",        "package": "com.espn.score_center"},
-    {"label": "YouTube TV",  "package": "com.google.android.youtube.tvunplugged"},
-    {"label": "FOX Sports",  "package": "com.foxsports.videogo"},
-    {"label": "Peacock",     "package": "com.peacocktv.peacockandroid"},
-    {"label": "Paramount+",  "package": "com.cbs.ott"},
-    {"label": "Prime Video", "package": "com.amazon.amazonvideo.livingroom"},
-    {"label": "NFL",         "package": "com.gotv.nflgamecenter.us.lite"},
-    {"label": "YouTube",     "package": "com.google.android.youtube.tv"},
-    {"label": "Settings",    "package": "com.android.tv.settings"}
-  ],
-
-  "refresh": {
-    "liveSeconds": 30,
-    "idleSeconds": 300,
-    "cacheSeconds": 20,
-    "teamCacheSeconds": 900,
-    "newsCacheSeconds": 600
-  },
+  "refresh": {"liveSeconds": 30, "idleSeconds": 300, "cacheSeconds": 20, "teamCacheSeconds": 900, "newsCacheSeconds": 600},
   "idleAfterSeconds": 30,
   "idleScrollSeconds": 7,
   "idleRotateSeconds": 20,
@@ -46,26 +22,10 @@
   "showOdds": true,
 
   "gameMode": {
-    "auto": true,
-    "idleSeconds": 60,
-    "rotateSeconds": 0,
-    "refreshSeconds": 15,
-    "exitAfterFinalSeconds": 120,
-    "callouts": true,
-    "calloutDelaySeconds": 0,
-    "sound": "builtin",
-    "soundVolume": 0.8,
-    "soundSeconds": 20,
-    "soundFadeSeconds": 3
+    "auto": true, "idleSeconds": 60, "rotateSeconds": 0, "refreshSeconds": 15, "exitAfterFinalSeconds": 120,
+    "callouts": true, "calloutDelaySeconds": 0, "sound": "builtin", "soundVolume": 0.8, "soundSeconds": 20, "soundFadeSeconds": 3,
+    "periodCallouts": true, "finalCallouts": true
   },
 
-  "fantasy": {
-    "enabled": false,
-    "title": "Fantasy",
-    "command": "",
-    "url": "",
-    "cwd": "",
-    "cacheSeconds": 120,
-    "timeoutSeconds": 30
-  }
+  "fantasy": {"enabled": false, "title": "Fantasy", "command": "", "url": "", "cwd": "", "cacheSeconds": 120, "timeoutSeconds": 30}
 }

@@ -451,6 +451,7 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 }
 @keyframes fw-core { from { transform: scale(0.2); opacity: 1; } to { transform: scale(3); opacity: 0; } }
 
+<<<<<<< HEAD
 /* ---------- settings screen ---------- */
 .settings { position: fixed; inset: 0; z-index: 30; background: rgba(4, 6, 10, 0.975); padding: var(--safe); }
 .st-panel { display: grid; grid-template-columns: 26rem 1fr; gap: 2rem; height: 100%; }
@@ -487,3 +488,56 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .st-key { text-align: center; padding: 0.8rem 0; border-radius: 0.6rem; background: var(--panel-2); font-size: 1.7rem; font-weight: 600; border: 0.12rem solid transparent; }
 .st-key.space { grid-column: span 3; }
 .st-key.focused { box-shadow: var(--focus-glow); }
+=======
+/* ---------- football field graphic ---------- */
+.field { width: 100%; display: block; }
+.field .turf { fill: #1d3a22; }
+.field .turf-alt { fill: #1b3520; }
+.field .ez { opacity: 0.85; }
+.field .ez-text { font-family: "Outfit", sans-serif; font-weight: 700; font-size: 5px; fill: #fff; letter-spacing: 0.08em; text-anchor: middle; }
+.field .yard { stroke: rgba(255,255,255,0.45); stroke-width: 0.25; }
+.field .yard.mid { stroke: rgba(255,255,255,0.8); stroke-width: 0.4; }
+.field .num { font-family: "Outfit", sans-serif; font-size: 3.2px; fill: rgba(255,255,255,0.55); text-anchor: middle; }
+.field .drive { stroke-width: 2.2; stroke-linecap: round; opacity: 0.85; }
+.field .firstdown { stroke: #ffd23f; stroke-width: 0.6; stroke-dasharray: 1 0.6; }
+.field .los { stroke: #4da3ff; stroke-width: 0.6; }
+.field .ball { fill: #7a3b12; stroke: #f2e6d8; stroke-width: 0.3; }
+.field .ball.redzone { animation: ball-pulse 1s ease-in-out infinite; }
+@keyframes ball-pulse { 0%, 100% { filter: drop-shadow(0 0 0.5px #ff3b3b); } 50% { filter: drop-shadow(0 0 3px #ff3b3b); } }
+.field .play-arc { fill: none; stroke: #fff; stroke-width: 0.7; stroke-linecap: round; stroke-dasharray: 200; stroke-dashoffset: 200; }
+.field.anim-pass .play-arc, .field.anim-punt .play-arc, .field.anim-kickoff .play-arc, .field.anim-fieldgoal .play-arc, .field.anim-incomplete .play-arc { animation: draw 900ms ease-out forwards; }
+.field.anim-incomplete .play-arc { stroke: #ff8a8a; stroke-dasharray: 1.2 0.8; animation: draw-dash 900ms ease-out forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes draw-dash { from { stroke-dashoffset: 200; } to { stroke-dashoffset: 0; } }
+.field .play-run { stroke: #fff; stroke-width: 1.4; stroke-linecap: round; stroke-dasharray: 200; stroke-dashoffset: 200; }
+.field.anim-rush .play-run { animation: draw 700ms ease-out forwards; }
+.field.anim-sack .play-run { stroke: #ff6b6b; animation: draw 500ms ease-out forwards; }
+.field .flag { fill: #ffd23f; opacity: 0; transform-origin: center; }
+.field.anim-penalty .flag { animation: flag 1.4s ease-out forwards; }
+@keyframes flag { 0% { opacity: 0; transform: translateY(-14px) rotate(-20deg); } 40% { opacity: 1; transform: translateY(0) rotate(10deg); } 100% { opacity: 1; transform: translateY(0) rotate(0); } }
+.field .flash { fill: rgba(255, 59, 59, 0.45); opacity: 0; }
+.field.anim-turnover .flash, .field.anim-sack .flash { animation: flash 900ms ease-out; }
+@keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
+.field .incomplete-x { stroke: #ff8a8a; stroke-width: 0.8; opacity: 0; }
+.field.anim-incomplete .incomplete-x { animation: xin 400ms ease-out 700ms forwards; }
+@keyframes xin { to { opacity: 1; } }
+
+.gm-field { display: grid; gap: 0.6rem; margin-top: 1rem; width: 100%; max-width: 70rem; justify-self: center; }
+.gm-field .field { border-radius: 0.6rem; overflow: hidden; box-shadow: 0 0.6rem 2rem rgba(0,0,0,0.45); }
+.gm-field .play-line { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; font-size: 1.6rem; color: var(--text); }
+.gm-field .play-kind { font-size: 1.05rem; letter-spacing: 0.15em; font-weight: 700; text-transform: uppercase; padding: 0.3rem 0.7rem; border-radius: 0.5rem; background: var(--panel-2); color: var(--muted); }
+.gm-field .play-kind.pass { color: #9ad0ff; } .gm-field .play-kind.rush { color: #b8f0a0; } .gm-field .play-kind.penalty { color: #ffd23f; background: #4a3b00; }
+.gm-field .play-kind.turnover, .gm-field .play-kind.sack { color: #ff8a8a; background: #4a1414; } .gm-field .play-kind.incomplete { color: #ff8a8a; }
+.gm-field .play-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gm-field .play-yards { color: var(--muted); font-variant-numeric: tabular-nums; }
+.gm-field .drive-text { font-size: 1.2rem; color: var(--dim); text-align: center; }
+.gm-main.has-field { grid-template-columns: 1fr auto 1fr; }
+.gm-main.has-field .gm-center { min-width: 46rem; }
+
+/* slim strip on the live card */
+.card .strip { width: 100%; height: 0.9rem; display: block; border-radius: 0.3rem; margin-top: 0.2rem; }
+/* after the animation (or on a re-render of the board) the play stays drawn */
+.field.anim-done .play-arc, .field.anim-done .play-run { stroke-dashoffset: 0; animation: none; }
+.field.anim-done .flag { opacity: 1; animation: none; }
+.field.anim-done .incomplete-x { opacity: 1; animation: none; }
+>>>>>>> claude/admiring-albattani-aplkym
