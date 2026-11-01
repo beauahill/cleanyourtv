@@ -958,7 +958,7 @@
     home() { exitGameMode(); closeOverlay(); selectTab("all"); },
     gameMode(league, id) { const g = allGames().find((x) => x.league === league && x.id === id); if (g) enterGameMode(g); },
     // for testing callouts from the browser console: SportsHubPage.simulateScore("nfl", "401901001", "away", 7)
-    demo(sport) { demoCallout(sport); },
+    demo(sport, team) { demoCallout(sport, team); },
     // change a gameMode option on the running page (until the next reload), e.g. ("calloutDelaySeconds", 30)
     setGameModeOption(key, value) { if (!state.config.gameMode) state.config.gameMode = {}; state.config.gameMode[key] = value; },
     setOption(key, value) { state.config[key] = value; },
@@ -1500,18 +1500,33 @@
   // Demo callouts: press 0 on the page, or open /?demo=score to play every sport once.
   const DEMO_SPORTS = ["football", "hockey", "baseball", "soccer"]; // basketball never calls out: too frequent
   let demoIndex = 0;
-  function demoCallout(sport) {
-    sport = sport || DEMO_SPORTS[demoIndex++ % DEMO_SPORTS.length];
+  // demoCallout(sport, team): team is a favourite's abbreviation or id ("buf", "wyo", "2751");
+  // with a team the sport comes from that favourite's league unless given.
+  const LEAGUE_SPORT = { nfl: "football", cfb: "football", nhl: "hockey", mlb: "baseball", nba: "basketball", ncaam: "basketball", wnba: "basketball", mls: "soccer", epl: "soccer" };
+  function demoCallout(sport, teamKey) {
     const favs = (state.config && state.config.favorites) || [];
-    const live = allGames().find((g) => g.favorite) || allGames()[0];
-    const team = live ? (isFavoriteTeam(live, "away") ? live.away : live.home) : null;
-    const t = team || { abbr: (favs[0] && favs[0].team || "HOME").toUpperCase(), short: "Home Team", color: "ffc425", altColor: "492f24" };
+    let fav = null;
+    if (teamKey) fav = favs.find((f) => String(f.team || "").toLowerCase() === String(teamKey).toLowerCase()) || null;
+    if (fav && !sport) sport = LEAGUE_SPORT[fav.league] || "hockey";
+    sport = sport || DEMO_SPORTS[demoIndex++ % DEMO_SPORTS.length];
+    // use the real team from My Teams when we have it (name, colours, logo), else a stand-in
+    const mt = ((state.myteams && state.myteams.teams) || []).find((t) => fav && t.league === fav.league &&
+      [String(t.abbr || "").toLowerCase(), String(t.id || "").toLowerCase()].includes(String(fav.team).toLowerCase()));
+    let t;
+    if (fav) {
+      t = mt ? { abbr: mt.abbr, id: mt.id, short: mt.short || mt.name, color: mt.color || "ffc425", altColor: mt.altColor || "ffffff", logo: mt.logo }
+             : { abbr: String(fav.team).toUpperCase(), id: String(fav.team), short: String(fav.team).toUpperCase(), color: "ffc425", altColor: "492f24" };
+    } else {
+      const live = allGames().find((g) => g.favorite) || allGames()[0];
+      const team = live ? (isFavoriteTeam(live, "away") ? live.away : live.home) : null;
+      t = team || { abbr: (favs[0] && favs[0].team || "HOME").toUpperCase(), short: "Home Team", color: "ffc425", altColor: "492f24" };
+      if (!fav && live && live.favorite) fav = favoriteFor(live, isFavoriteTeam(live, "away") ? "away" : "home");
+    }
     const g = { sport: sport, league: "demo", id: "demo", shortName: (t.abbr || "HOME") + " vs OPP", detail: "Demo",
                 away: t, home: { abbr: "OPP", short: "Visitors", color: "334455", altColor: "ffffff", score: "0" }, favorite: true };
     g.away = Object.assign({}, t, { score: sport === "football" ? "7" : "1" });
     const word = scoreWord(g, sport === "football" ? 7 : 1) || "Score";
-    g.league = (favs[0] && favs[0].league) || "demo";
-    const fav = favoriteFor(g, "away");
+    g.league = fav ? fav.league : ((favs[0] && favs[0].league) || "demo");
     if (fav && fav.video) { showVideoCallout(word + " " + (t.short || t.abbr), g, "away", fav); return; }
     showCallout(word + " " + (t.short || t.abbr), g, "away", true);
     playScoreSound(g, "away");
@@ -1519,6 +1534,8 @@
   function maybeRunDemo() {
     const q = new URLSearchParams(location.search);
     if (q.get("demo") !== "score") return;
+    const team = q.get("team");
+    if (team) { setTimeout(() => demoCallout(q.get("sport") || null, team), 2500); return; }
     let i = 0;
     const next = () => { if (i < DEMO_SPORTS.length) { demoCallout(DEMO_SPORTS[i++]); setTimeout(next, 7000); } };
     setTimeout(next, 1500);

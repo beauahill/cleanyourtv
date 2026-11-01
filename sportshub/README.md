@@ -193,7 +193,9 @@ Tune against your stream: note how far ahead the hub is on the next score and se
 `SportsHubPage.setOption("scoreDelaySeconds", 45)`.
 
 To see the callouts without waiting for a game: press `0` on the page (each press is the next
-sport), or open `http://<pc-ip>:8777/?demo=score` to play all five in a row. On the stick:
+sport, for your first favourite), or open `http://<pc-ip>:8777/?demo=score` to play them all in a
+row. For one team's own sound or clip: `http://<pc-ip>:8777/?demo=score&team=buf` (a favourite's
+abbreviation or id), or in the browser console `SportsHubPage.demo(null, "buf")`. On the stick:
 `adb shell am start -n com.sportshub.tv/.MainActivity --es url "http://<pc-ip>:8777/?demo=score"`,
 then set the URL back without the query.
 
