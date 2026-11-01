@@ -47,7 +47,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.path.join(HERE, "static")
 DEMO = os.path.join(HERE, "demo")
 ESPN = "https://site.api.espn.com/apis/site/v2/sports"
-USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) SportsHub/1.0 (+https://github.com/beauahill/tv-vibehack)"
+USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) SportsHub/1.0 (+https://github.com/beauahill/cleanyourtv)"
 
 log = logging.getLogger("sportshub")
 

@@ -127,7 +127,7 @@ Get the APK. The repository's GitHub Actions workflow builds it on every push an
 moving pre-release, so no Java or Android SDK is needed here:
 
 ```bash
-curl -L -o sportshub-kiosk.apk https://github.com/beauahill/tv-vibehack/releases/download/kiosk-latest/sportshub-kiosk.apk
+curl -L -o sportshub-kiosk.apk https://github.com/beauahill/cleanyourtv/releases/download/kiosk-latest/sportshub-kiosk.apk
 ls -la sportshub-kiosk.apk     # expect roughly 50-200 KB, not an HTML error page
 ```
 

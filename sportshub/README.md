@@ -75,7 +75,7 @@ checking against a real stick. Comment out anything you use. Undo any time with
 It is written so an agent with `adb` can run it unattended.
 
 **Option A, the kiosk app (recommended).** A prebuilt APK is attached to the
-[`kiosk-latest` release](https://github.com/beauahill/tv-vibehack/releases/tag/kiosk-latest) by
+[`kiosk-latest` release](https://github.com/beauahill/cleanyourtv/releases/tag/kiosk-latest) by
 GitHub Actions on every push, so you don't need Java to install it: download it, `adb install -r`,
 `cmd package set-home-activity`, as in the runbook. To build it yourself instead you need JDK 17
 and the Android SDK, same as `launcher/` (macOS: `brew install openjdk@17 android-commandlinetools
