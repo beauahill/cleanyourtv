@@ -311,39 +311,37 @@ def _yards_to_go(spot_text, offense_abbr):
 
 
 def _field(s, out, home, away):
-    """Ball spot, first-down line, drive start and the last play, all as yards to the end zone
-    for the team with the ball, for the field graphic."""
+    """Ball spot, first-down line, drive start and the last play, as yards to the end zone for the
+    team with the ball. Everything is anchored to ESPN's spot text ("KC 35"); the numeric yardLine
+    fields are not used because their direction is not documented."""
     side = out.get("possession")
     if not side:
         return
-    offense = (home if side == "home" else away).get("abbr")
-    ytg = _yards_to_go(s.get("possessionText"), offense)
-    if ytg is None and isinstance(s.get("yardLine"), int):
-        ytg = 100 - s["yardLine"]          # ESPN yardLine counts from the offense's own goal line
+    offense = (home if side == "home" else away)
+    ytg = _yards_to_go(s.get("possessionText"), offense.get("abbr"))
+    if ytg is None:
+        return
     out["yardsToGo"] = ytg
     if isinstance(s.get("down"), int) and s.get("down") > 0:
         out["down"] = s.get("down")
     if isinstance(s.get("distance"), int):
         out["distance"] = s.get("distance")
-        if ytg is not None:
-            out["firstDownAt"] = max(0, ytg - s["distance"]) if s["distance"] < ytg else 0
+        out["firstDownAt"] = max(0, ytg - s["distance"]) if s["distance"] < ytg else 0
     lp = s.get("lastPlay") or {}
     if lp:
         drive = lp.get("drive") or {}
-        dstart = _yards_to_go((drive.get("start") or {}).get("text"), offense)
+        dstart = _yards_to_go((drive.get("start") or {}).get("text"), offense.get("abbr"))
         if dstart is not None:
             out["drive"] = {"startYtg": dstart, "text": drive.get("description")}
         ptype = (lp.get("type") or {}).get("text") or ""
         kind = _play_kind(ptype)
+        play_team = str((lp.get("team") or {}).get("id") or "")
+        same = play_team == "" or play_team == str(offense.get("id") or "")
         play = {"id": lp.get("id"), "kind": kind, "type": ptype, "text": lp.get("text"),
-                "yards": lp.get("statYardage")}
-        st, en = lp.get("start") or {}, lp.get("end") or {}
-        if isinstance(st.get("yardLine"), int):
-            play["startYtg"] = 100 - st["yardLine"]
-        if isinstance(en.get("yardLine"), int):
-            play["endYtg"] = 100 - en["yardLine"]
-        if play.get("startYtg") is None and ytg is not None and isinstance(play.get("yards"), int) and kind in ("pass", "rush", "sack"):
-            play["startYtg"] = ytg + play["yards"]
+                "yards": lp.get("statYardage"), "sameTeam": same}
+        # a pass, run or sack by the team that still has the ball ended at the current spot
+        if same and isinstance(play.get("yards"), int) and kind in ("pass", "rush", "sack"):
+            play["startYtg"] = max(0, min(100, ytg + play["yards"]))
             play["endYtg"] = ytg
         out["play"] = play
 
