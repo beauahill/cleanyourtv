@@ -281,7 +281,74 @@ def _broadcast(comp):
     return ", ".join(out[:3])
 
 
-def _situation(comp, sport, home_id, away_id):
+PLAY_KINDS = [
+    ("penalty", "penalty"), ("timeout", "timeout"), ("two-minute", "timeout"), ("end period", "other"), ("end of", "other"),
+    ("kickoff", "kickoff"), ("punt", "punt"), ("field goal", "fieldgoal"), ("extra point", "fieldgoal"), ("two-point", "rush"),
+    ("interception", "turnover"), ("fumble recovery (opponent)", "turnover"), ("fumble", "rush"), ("safety", "turnover"),
+    ("sack", "sack"), ("pass incompletion", "incomplete"), ("incomplete", "incomplete"), ("pass", "pass"), ("rush", "rush"),
+]
+
+
+def _play_kind(type_text):
+    t = (type_text or "").lower()
+    for needle, kind in PLAY_KINDS:
+        if needle in t:
+            return kind
+    return "other"
+
+
+def _yards_to_go(spot_text, offense_abbr):
+    """'KC 35' with the offense DEN -> 35 yards to the end zone; 'DEN 25' with DEN -> 75. None if unparseable."""
+    if not spot_text or not offense_abbr:
+        return None
+    m = re.match(r"\s*([A-Za-z&'. ]+?)\s+(\d{1,2})\s*$", spot_text)
+    if not m:
+        return None
+    side, n = m.group(1).strip().upper(), int(m.group(2))
+    if n == 50:
+        return 50
+    return 100 - n if side == offense_abbr.upper() else n
+
+
+def _field(s, out, home, away):
+    """Ball spot, first-down line, drive start and the last play, all as yards to the end zone
+    for the team with the ball, for the field graphic."""
+    side = out.get("possession")
+    if not side:
+        return
+    offense = (home if side == "home" else away).get("abbr")
+    ytg = _yards_to_go(s.get("possessionText"), offense)
+    if ytg is None and isinstance(s.get("yardLine"), int):
+        ytg = 100 - s["yardLine"]          # ESPN yardLine counts from the offense's own goal line
+    out["yardsToGo"] = ytg
+    if isinstance(s.get("down"), int) and s.get("down") > 0:
+        out["down"] = s.get("down")
+    if isinstance(s.get("distance"), int):
+        out["distance"] = s.get("distance")
+        if ytg is not None:
+            out["firstDownAt"] = max(0, ytg - s["distance"]) if s["distance"] < ytg else 0
+    lp = s.get("lastPlay") or {}
+    if lp:
+        drive = lp.get("drive") or {}
+        dstart = _yards_to_go((drive.get("start") or {}).get("text"), offense)
+        if dstart is not None:
+            out["drive"] = {"startYtg": dstart, "text": drive.get("description")}
+        ptype = (lp.get("type") or {}).get("text") or ""
+        kind = _play_kind(ptype)
+        play = {"id": lp.get("id"), "kind": kind, "type": ptype, "text": lp.get("text"),
+                "yards": lp.get("statYardage")}
+        st, en = lp.get("start") or {}, lp.get("end") or {}
+        if isinstance(st.get("yardLine"), int):
+            play["startYtg"] = 100 - st["yardLine"]
+        if isinstance(en.get("yardLine"), int):
+            play["endYtg"] = 100 - en["yardLine"]
+        if play.get("startYtg") is None and ytg is not None and isinstance(play.get("yards"), int) and kind in ("pass", "rush", "sack"):
+            play["startYtg"] = ytg + play["yards"]
+            play["endYtg"] = ytg
+        out["play"] = play
+
+
+def _situation(comp, sport, home_id, away_id, home=None, away=None):
     s = comp.get("situation") or {}
     if not s:
         return None
@@ -295,6 +362,7 @@ def _situation(comp, sport, home_id, away_id):
         out["possessionText"] = s.get("possessionText")
         if s.get("homeTimeouts") is not None:
             out["timeouts"] = {"home": s.get("homeTimeouts"), "away": s.get("awayTimeouts")}
+        _field(s, out, home or {}, away or {})
     elif sport == "baseball":
         bases = "".join("●" if s.get(k) else "○" for k in ("onFirst", "onSecond", "onThird"))
         parts = []
@@ -428,7 +496,7 @@ def normalise_event(ev, league_cfg, favorites, tz):
         "neutral": bool(comp.get("neutralSite")),
         "home": home,
         "away": away,
-        "situation": _situation(comp, sport, home.get("id"), away.get("id")),
+        "situation": _situation(comp, sport, home.get("id"), away.get("id"), home, away),
         "odds": odds,
         "headline": headline,
         "leaders": leaders[:3],

@@ -133,8 +133,33 @@
       "downDistanceText": "3rd & 2 at BSU 18",
       "possession": "2751",
       "isRedZone": true,
+      "down": 3,
+      "distance": 2,
+      "yardLine": 82,
+      "possessionText": "BSU 18",
       "lastPlay": {
-       "text": "Sam Scott run for 6 yards to the BSU 18"
+       "id": "4019020015678",
+       "type": {
+        "id": "5",
+        "text": "Rush"
+       },
+       "text": "Sam Scott run for 6 yards to the BSU 18",
+       "statYardage": 6,
+       "start": {
+        "yardLine": 76,
+        "text": "BSU 24"
+       },
+       "end": {
+        "yardLine": 82,
+        "text": "BSU 18"
+       },
+       "drive": {
+        "description": "9 plays, 58 yards, 4:40",
+        "start": {
+         "yardLine": 24,
+         "text": "WYO 24"
+        }
+       }
       }
      }
     }
