@@ -35,6 +35,15 @@ android {
         }
     }
 
+    // The page itself ships inside the APK: static/ (html, css, js, fonts, config.json) becomes
+    // file:///android_asset/. The user's own files (config.json, media/, fonts/custom/) live in the
+    // app's external files dir, pushed with adb.
+    sourceSets {
+        main {
+            assets.srcDirs += ['../../static']
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17

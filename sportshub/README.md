@@ -18,13 +18,16 @@ Everything is in `rem` with `1rem = 1/120 of the screen width`, so it looks the 
 The screenshots are from demo mode in a sandbox without internet, so they show team abbreviations
 where the real page shows ESPN's team logos.
 
+**No PC?** The kiosk APK can run the whole thing by itself, talking to ESPN from the stick: see
+[`STICK-ONLY.md`](STICK-ONLY.md). The rest of this README is the PC-hosted mode.
+
 ## Parts
 
 | Path | What it is |
 |---|---|
 | `server.py` | Stdlib-only Python server: serves the page, proxies and caches ESPN, normalises the data. |
 | `config.json` | Leagues, favourite teams, dock apps, refresh rates, timezone, fantasy hook. |
-| `static/` | The page: `index.html`, `style.css`, `app.js`, the Outfit font. No build step. |
+| `static/` | The page: `index.html`, `style.css`, `app.js`, the Outfit font. No build step. `direct.js` is the data layer for stick-only mode. |
 | `android/` | A 100 KB kiosk app (WebView) that makes the page the stick's home screen. |
 | `demo/` | ESPN-shaped fixtures so you can develop without hitting ESPN (`--demo`). |
 | `sportshub.service` | systemd unit for the mini PC. |

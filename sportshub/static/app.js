@@ -25,6 +25,8 @@
     overlayGame: null,
     lastKeyAt: Date.now(),
     version: null,
+    mode: null,
+    directReady: false,
     latestToday: null,
     timers: {},
     gm: { active: false, league: null, id: null, enteredAt: 0, finalAt: 0, details: null, lastRotate: 0 },
@@ -100,7 +102,7 @@
     }
     const style = el("style");
     style.id = "title-font-face";
-    style.textContent = '@font-face { font-family: "HubTitle"; src: url("' + tf.file.replace(/"/g, "") + '"); font-display: swap; }';
+    style.textContent = '@font-face { font-family: "HubTitle"; src: url("' + fileUrl(tf.file.replace(/"/g, "")) + '"); font-display: swap; }';
     document.head.appendChild(style);
     root.setProperty("--title-font", '"HubTitle", "Outfit", sans-serif');
     if (tf.size) root.setProperty("--title-size", tf.size);
@@ -142,10 +144,49 @@
   setInterval(() => Object.keys(delayQueues).forEach(pumpDelayQueue), 1000);
 
   // ------------------------------------------------------------------ data
+  // Two ways to get data: "server" (the Python server at /api/...) or "direct" (stick-only: the
+  // page talks to ESPN itself through direct.js). Direct is used when the page is loaded from the
+  // kiosk's bundled assets (file://), when the kiosk says so, or with ?mode=direct.
+  function isDirect() {
+    if (state.mode) return state.mode === "direct";
+    const q = new URLSearchParams(location.search).get("mode");
+    if (q === "direct" || q === "server") state.mode = q;
+    else if (window.SportsHub && typeof window.SportsHub.mode === "function") state.mode = window.SportsHub.mode() === "direct" ? "direct" : "server";
+    else state.mode = location.protocol === "file:" ? "direct" : "server";
+    return state.mode === "direct";
+  }
+
+  // Where user files (media clips, custom fonts, icons) live. Server mode: next to the page.
+  // Direct mode: the kiosk's files folder (pushed with adb) or, in a plain browser, nothing.
+  function fileUrl(rel) {
+    if (!rel || /^(https?:|data:|file:|blob:)/.test(rel)) return rel;
+    if (isDirect() && window.SportsHub && typeof window.SportsHub.filesUrl === "function") return window.SportsHub.filesUrl().replace(/\/?$/, "/") + rel;
+    return rel;
+  }
+
   async function getJSON(url) {
+    if (isDirect()) {
+      if (!state.directReady) await initDirect();
+      return window.SportsHubDirect.call(url);
+    }
     const r = await fetch(url, { cache: "no-store" });
     if (!r.ok) throw new Error(url + " -> " + r.status);
     return r.json();
+  }
+
+  // Direct-mode config: defaults, then config.json bundled with the page, then the user's own
+  // config (kiosk file via the bridge, or localStorage in a browser). Same layering as the server.
+  async function initDirect() {
+    const configs = [];
+    try { const r = await fetch("config.json", { cache: "no-store" }); if (r.ok) configs.push(await r.json()); } catch (e) { /* no bundled config */ }
+    let user = null;
+    try {
+      if (window.SportsHub && typeof window.SportsHub.readConfig === "function") { const t = window.SportsHub.readConfig(); if (t) user = JSON.parse(t); }
+      else { const t = localStorage.getItem("sportshub.config"); if (t) user = JSON.parse(t); }
+    } catch (e) { toast("config.json on the stick is not valid JSON: " + e.message); }
+    if (user) configs.push(user);
+    window.SportsHubDirect.init({ configs: configs });
+    state.directReady = true;
   }
 
   async function loadConfig() {
@@ -186,7 +227,7 @@
   // The kiosk never reloads the page on its own, so when the server reports a new static version
   // (any file under static/ changed) the page reloads itself; the delay queues restart empty.
   function maybeReloadForNewVersion(v) {
-    if (!v) return;
+    if (!v || isDirect()) return;
     if (!state.version) { state.version = v; return; }
     if (v !== state.version && !state.gm.active && !state.overlayOpen) location.reload();
   }
@@ -620,7 +661,7 @@
       t.appendChild(mono);
       // artwork: explicit "icon" URL in config, else the kiosk's copy of the app's TV banner,
       // else static/icons/<package>.png if you put one there, else the initials above
-      const src = a.icon || bridgeIcon(a.package) || (a.package ? "icons/" + a.package + ".png" : "");
+      const src = a.icon || bridgeIcon(a.package) || (a.package ? fileUrl("icons/" + a.package + ".png") : "");
       if (src) {
         const img = el("img", "art");
         img.alt = "";
@@ -972,6 +1013,9 @@
     // change a gameMode option on the running page (until the next reload), e.g. ("calloutDelaySeconds", 30)
     setGameModeOption(key, value) { if (!state.config.gameMode) state.config.gameMode = {}; state.config.gameMode[key] = value; },
     setOption(key, value) { state.config[key] = value; },
+    mode() { return isDirect() ? "direct" : "server"; },
+    // direct mode: re-read config.json from the stick (after an adb push) without a reload
+    reloadConfig() { state.directReady = false; return loadConfig().then(() => { loadToday(); loadMyTeams(); loadNews(); }); },
     // renders a built-in sound offline and resolves with its peak level (0..1); for diagnostics
     testSound(sport) {
       const ctx = new OfflineAudioContext(1, 44100 * 5, 44100);
@@ -1503,7 +1547,7 @@
     v.classList.remove("hidden");
     v.muted = !!fav.videoMuted;
     v.volume = gmCfg().soundVolume == null ? 0.8 : Math.max(0, Math.min(1, Number(gmCfg().soundVolume)));
-    v.src = fav.video;
+    v.src = fileUrl(fav.video);
     c.classList.remove("hidden");
     clearTimeout(calloutTimer); clearTimeout(videoTimer);
     let cancelFade = null;
@@ -1528,7 +1572,7 @@
     // a file: mp3/ogg/wav, or a video file for its audio track only (the animation still plays)
     stopCurrentSound();
     try {
-      const a = new Audio(src);
+      const a = new Audio(fileUrl(src));
       a.volume = vol;
       const lim = soundLimits(fav);
       const cancel = capAndFade(a, lim.secs, lim.fade, () => { if (currentSound && currentSound.el === a) currentSound = null; });

@@ -48,6 +48,8 @@ public class MainActivity extends Activity {
     private static final String TAG = "SportsHub";
     private static final String PREFS = "sportshub";
     private static final String KEY_URL = "url";
+    private static final String KEY_MODE = "mode";
+    private static final String DIRECT_URL = "file:///android_asset/index.html";
 
     private WebView web;
     private String url;
@@ -87,6 +89,11 @@ public class MainActivity extends Activity {
         s.setSupportZoom(false);
         s.setBuiltInZoomControls(false);
         s.setDisplayZoomControls(false);
+        // direct mode: the page is a file:// asset that fetches ESPN and plays media from the files dir
+        s.setAllowFileAccess(true);
+        s.setAllowContentAccess(true);
+        s.setAllowFileAccessFromFileURLs(true);
+        s.setAllowUniversalAccessFromFileURLs(true);
         web.addJavascriptInterface(new Bridge(), "SportsHub");
         web.setWebViewClient(new Client());
         setContentView(web);
@@ -98,14 +105,67 @@ public class MainActivity extends Activity {
         web.loadUrl(url);
     }
 
+    /**
+     * Which page to show. Extras: --es url http://pc:8777/ (server mode, remembered),
+     * --es mode direct|server (remembered), --es config '{...}' (written to the files dir).
+     * With no stored URL and no hub_url resource, the bundled page runs in direct mode.
+     */
     private String resolveUrl(Intent intent) {
         SharedPreferences p = getSharedPreferences(PREFS, MODE_PRIVATE);
-        String fromIntent = intent != null ? intent.getStringExtra("url") : null;
-        if (fromIntent != null && !fromIntent.isEmpty()) {
-            p.edit().putString(KEY_URL, fromIntent).apply();
-            return fromIntent;
+        if (intent != null) {
+            String cfgJson = intent.getStringExtra("config");
+            if (cfgJson != null && !cfgJson.isEmpty()) {
+                writeConfigFile(cfgJson);
+            }
+            String mode = intent.getStringExtra("mode");
+            if (mode != null && !mode.isEmpty()) {
+                p.edit().putString(KEY_MODE, mode).apply();
+            }
+            String fromIntent = intent.getStringExtra("url");
+            if (fromIntent != null && !fromIntent.isEmpty()) {
+                p.edit().putString(KEY_URL, fromIntent).putString(KEY_MODE, "server").apply();
+                return fromIntent;
+            }
         }
-        return p.getString(KEY_URL, getString(R.string.hub_url));
+        String mode = p.getString(KEY_MODE, "");
+        String stored = p.getString(KEY_URL, getString(R.string.hub_url));
+        if ("direct".equals(mode) || stored == null || stored.isEmpty()) {
+            return DIRECT_URL;
+        }
+        return stored;
+    }
+
+    private java.io.File configFile() {
+        java.io.File dir = getExternalFilesDir(null);
+        if (dir == null) {
+            dir = getFilesDir();
+        }
+        return new java.io.File(dir, "config.json");
+    }
+
+    private void writeConfigFile(String json) {
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(configFile())) {
+            out.write(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            Log.i(TAG, "config written to " + configFile());
+        } catch (java.io.IOException e) {
+            Log.w(TAG, "config write failed", e);
+            toast("Couldn't write config.json");
+        }
+    }
+
+    private String readConfigFile() {
+        java.io.File f = configFile();
+        if (!f.exists()) {
+            return "";
+        }
+        try (java.io.FileInputStream in = new java.io.FileInputStream(f)) {
+            byte[] buf = new byte[(int) f.length()];
+            int n = in.read(buf);
+            return new String(buf, 0, Math.max(0, n), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            Log.w(TAG, "config read failed", e);
+            return "";
+        }
     }
 
     @Override
@@ -400,6 +460,33 @@ public class MainActivity extends Activity {
                 Log.w(TAG, "icon " + pkg + " failed", e);
                 return "";
             }
+        }
+
+        /** "direct" when the bundled page should fetch ESPN itself, else "server". */
+        @JavascriptInterface
+        public String mode() {
+            return DIRECT_URL.equals(url) ? "direct" : "server";
+        }
+
+        /** The user's config.json from the files dir (pushed with adb), or "" if none. */
+        @JavascriptInterface
+        public String readConfig() {
+            return readConfigFile();
+        }
+
+        @JavascriptInterface
+        public void writeConfig(String json) {
+            writeConfigFile(json);
+        }
+
+        /** file:// URL of the app's files dir, where media/, fonts/custom/ and icons/ go. */
+        @JavascriptInterface
+        public String filesUrl() {
+            java.io.File dir = getExternalFilesDir(null);
+            if (dir == null) {
+                dir = getFilesDir();
+            }
+            return Uri.fromFile(dir).toString() + "/";
         }
 
         @JavascriptInterface
