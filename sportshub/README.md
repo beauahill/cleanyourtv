@@ -210,6 +210,16 @@ abbreviation or id), or in the browser console `SportsHubPage.demo(null, "buf")`
 `adb shell am start -n com.sportshub.tv/.MainActivity --es url "http://<pc-ip>:8777/?demo=score"`,
 then set the URL back without the query.
 
+## Settings on the TV
+
+The last dock tile, **Hub Settings** (or the Menu key on remotes that have one), opens a settings
+screen driven entirely by the remote: favourites (add from a league's team list, reorder, pick a
+sound or clip file, remove), leagues (turn on and order the tabs), display (title via an on-screen
+keyboard, theme, time zone, broadcast delay, screen margin, dock position), sounds and callouts,
+dock apps, and an About page with ESPN status and a reset. Back from the left-hand menu saves and
+applies. It edits the same `config.local.json` (PC) or `config.json` (stick) described below, only
+the keys you change, so a text editor still works for anything the screen doesn't cover.
+
 ## Configuration
 
 `config.json` holds the defaults that ship with the repo. Put **your** settings in

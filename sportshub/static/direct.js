@@ -389,6 +389,25 @@
     return { league: key, id: String(id), scoringPlays: plays, leaders: leaders.slice(0, 8), box: box, lastPlay: last, homeWinPct: win, stale: stale };
   }
 
+  async function teams(key) {
+    const [path, lg] = leaguePath(key);
+    const params = { limit: 1000 };
+    if ((lg.params || {}).groups) params.groups = lg.params.groups;
+    const { value: raw, stale } = await cached("teams:" + key, 6 * 3600, () => espn(path + "/teams", params));
+    const out = [];
+    (raw.sports || []).forEach((sp) => (sp.leagues || []).forEach((L) => (L.teams || []).forEach((item) => {
+      const t = item.team || item;
+      out.push({ id: t.id == null ? null : t.id, abbr: t.abbreviation == null ? null : t.abbreviation, name: t.displayName == null ? null : t.displayName,
+        short: t.shortDisplayName || t.name || null, location: t.location == null ? null : t.location,
+        logo: ((t.logos || [{}])[0] || {}).href || null, color: t.color == null ? null : t.color });
+    })));
+    out.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    return { league: key, label: lg.label, teams: out, stale: stale };
+  }
+
+  let userConfig = {};
+  function setUserConfig(c) { userConfig = c || {}; }
+
   function publicConfig() {
     const c = {};
     Object.keys(cfg).forEach((k) => { if (!k.startsWith("_")) c[k] = cfg[k]; });
@@ -415,11 +434,13 @@
       case "myteams": return myteams();
       case "news": return q.get("league") ? news(q.get("league")) : allnews();
       case "game": return game(q.get("league") || "nfl", q.get("id") || "");
+      case "teams": return teams(q.get("league") || "nfl");
+      case "config/local": return JSON.parse(JSON.stringify(userConfig));
       case "fantasy": return { enabled: false };
       case "health": return health();
       default: throw new Error("not found: " + name);
     }
   }
 
-  return { init: init, call: call, normaliseEvent: normaliseEvent, DEFAULT_CONFIG: DEFAULT_CONFIG, merge: merge, get config() { return cfg; } };
+  return { init: init, call: call, normaliseEvent: normaliseEvent, DEFAULT_CONFIG: DEFAULT_CONFIG, merge: merge, setUserConfig: setUserConfig, get config() { return cfg; } };
 });

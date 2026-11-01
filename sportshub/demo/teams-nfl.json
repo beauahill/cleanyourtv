@@ -1,0 +1,102 @@
+{
+ "sports": [
+  {
+   "leagues": [
+    {
+     "teams": [
+      {
+       "team": {
+        "id": "2",
+        "abbreviation": "BUF",
+        "displayName": "Buffalo Bills",
+        "shortDisplayName": "Bills",
+        "location": "Buffalo",
+        "color": "00338d",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "7",
+        "abbreviation": "DEN",
+        "displayName": "Denver Broncos",
+        "shortDisplayName": "Broncos",
+        "location": "Denver",
+        "color": "fb4f14",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nfl/500/den.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "12",
+        "abbreviation": "KC",
+        "displayName": "Kansas City Chiefs",
+        "shortDisplayName": "Chiefs",
+        "location": "Kansas City",
+        "color": "e31837",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "19",
+        "abbreviation": "NYG",
+        "displayName": "New York Giants",
+        "shortDisplayName": "Giants",
+        "location": "New York",
+        "color": "0b2265",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "21",
+        "abbreviation": "PHI",
+        "displayName": "Philadelphia Eagles",
+        "shortDisplayName": "Eagles",
+        "location": "Philadelphia",
+        "color": "004c54",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "9",
+        "abbreviation": "GB",
+        "displayName": "Green Bay Packers",
+        "shortDisplayName": "Packers",
+        "location": "Green Bay",
+        "color": "203731",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png"
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

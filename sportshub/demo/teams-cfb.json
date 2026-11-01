@@ -1,0 +1,627 @@
+{
+ "sports": [
+  {
+   "leagues": [
+    {
+     "teams": [
+      {
+       "team": {
+        "id": "2000",
+        "abbreviation": "AIR",
+        "displayName": "Air Force Falcons",
+        "shortDisplayName": "Falcons",
+        "location": "Air Force",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2000.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2001",
+        "abbreviation": "ALAB",
+        "displayName": "Alabama Crimson Tide",
+        "shortDisplayName": "Tide",
+        "location": "Alabama Crimson",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2001.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2002",
+        "abbreviation": "ARIZ",
+        "displayName": "Arizona Wildcats",
+        "shortDisplayName": "Wildcats",
+        "location": "Arizona",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2002.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2003",
+        "abbreviation": "BOIS",
+        "displayName": "Boise State Broncos",
+        "shortDisplayName": "Broncos",
+        "location": "Boise State",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2003.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2004",
+        "abbreviation": "COLO",
+        "displayName": "Colorado Buffaloes",
+        "shortDisplayName": "Buffaloes",
+        "location": "Colorado",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2004.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2005",
+        "abbreviation": "COLO",
+        "displayName": "Colorado State Rams",
+        "shortDisplayName": "Rams",
+        "location": "Colorado State",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2005.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2006",
+        "abbreviation": "GEOR",
+        "displayName": "Georgia Bulldogs",
+        "shortDisplayName": "Bulldogs",
+        "location": "Georgia",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2006.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2007",
+        "abbreviation": "NEVA",
+        "displayName": "Nevada Wolf Pack",
+        "shortDisplayName": "Pack",
+        "location": "Nevada Wolf",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2007.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2008",
+        "abbreviation": "NEW",
+        "displayName": "New Mexico Lobos",
+        "shortDisplayName": "Lobos",
+        "location": "New Mexico",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2008.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2009",
+        "abbreviation": "OHIO",
+        "displayName": "Ohio State Buckeyes",
+        "shortDisplayName": "Buckeyes",
+        "location": "Ohio State",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2009.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2010",
+        "abbreviation": "OREG",
+        "displayName": "Oregon Ducks",
+        "shortDisplayName": "Ducks",
+        "location": "Oregon",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2010.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2011",
+        "abbreviation": "PENN",
+        "displayName": "Penn State Nittany Lions",
+        "shortDisplayName": "Lions",
+        "location": "Penn State Nittany",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2011.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2012",
+        "abbreviation": "SAN",
+        "displayName": "San Diego State Aztecs",
+        "shortDisplayName": "Aztecs",
+        "location": "San Diego State",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2012.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2013",
+        "abbreviation": "TEXA",
+        "displayName": "Texas Longhorns",
+        "shortDisplayName": "Longhorns",
+        "location": "Texas",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2013.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2014",
+        "abbreviation": "UNLV",
+        "displayName": "UNLV Rebels",
+        "shortDisplayName": "Rebels",
+        "location": "UNLV",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2014.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2015",
+        "abbreviation": "UTAH",
+        "displayName": "Utah State Aggies",
+        "shortDisplayName": "Aggies",
+        "location": "Utah State",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2015.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2016",
+        "abbreviation": "WYOM",
+        "displayName": "Wyoming Cowboys",
+        "shortDisplayName": "Cowboys",
+        "location": "Wyoming",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2016.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2017",
+        "abbreviation": "TEAM",
+        "displayName": "Team B1",
+        "shortDisplayName": "B1",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2017.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2018",
+        "abbreviation": "TEAM",
+        "displayName": "Team B2",
+        "shortDisplayName": "B2",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2018.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2019",
+        "abbreviation": "TEAM",
+        "displayName": "Team B3",
+        "shortDisplayName": "B3",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2019.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2020",
+        "abbreviation": "TEAM",
+        "displayName": "Team D1",
+        "shortDisplayName": "D1",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2020.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2021",
+        "abbreviation": "TEAM",
+        "displayName": "Team D2",
+        "shortDisplayName": "D2",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2021.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2022",
+        "abbreviation": "TEAM",
+        "displayName": "Team D3",
+        "shortDisplayName": "D3",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2022.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2023",
+        "abbreviation": "TEAM",
+        "displayName": "Team F1",
+        "shortDisplayName": "F1",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2023.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2024",
+        "abbreviation": "TEAM",
+        "displayName": "Team F2",
+        "shortDisplayName": "F2",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2024.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2025",
+        "abbreviation": "TEAM",
+        "displayName": "Team F3",
+        "shortDisplayName": "F3",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2025.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2026",
+        "abbreviation": "TEAM",
+        "displayName": "Team H1",
+        "shortDisplayName": "H1",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2026.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2027",
+        "abbreviation": "TEAM",
+        "displayName": "Team H2",
+        "shortDisplayName": "H2",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2027.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2028",
+        "abbreviation": "TEAM",
+        "displayName": "Team H3",
+        "shortDisplayName": "H3",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2028.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2029",
+        "abbreviation": "TEAM",
+        "displayName": "Team J1",
+        "shortDisplayName": "J1",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2029.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2030",
+        "abbreviation": "TEAM",
+        "displayName": "Team J2",
+        "shortDisplayName": "J2",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2030.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2031",
+        "abbreviation": "TEAM",
+        "displayName": "Team J3",
+        "shortDisplayName": "J3",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2031.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2032",
+        "abbreviation": "TEAM",
+        "displayName": "Team K1",
+        "shortDisplayName": "K1",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2032.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2033",
+        "abbreviation": "TEAM",
+        "displayName": "Team K2",
+        "shortDisplayName": "K2",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2033.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2034",
+        "abbreviation": "TEAM",
+        "displayName": "Team K3",
+        "shortDisplayName": "K3",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2034.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2035",
+        "abbreviation": "TEAM",
+        "displayName": "Team L1",
+        "shortDisplayName": "L1",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2035.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2036",
+        "abbreviation": "TEAM",
+        "displayName": "Team L2",
+        "shortDisplayName": "L2",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2036.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2037",
+        "abbreviation": "TEAM",
+        "displayName": "Team L3",
+        "shortDisplayName": "L3",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2037.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2038",
+        "abbreviation": "TEAM",
+        "displayName": "Team M1",
+        "shortDisplayName": "M1",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2038.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2039",
+        "abbreviation": "TEAM",
+        "displayName": "Team M2",
+        "shortDisplayName": "M2",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2039.png"
+         }
+        ]
+       }
+      },
+      {
+       "team": {
+        "id": "2040",
+        "abbreviation": "TEAM",
+        "displayName": "Team M3",
+        "shortDisplayName": "M3",
+        "location": "Team",
+        "color": "492f24",
+        "logos": [
+         {
+          "href": "https://a.espncdn.com/i/teamlogos/ncaa/500/2040.png"
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

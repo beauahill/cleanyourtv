@@ -186,6 +186,7 @@
     } catch (e) { toast("config.json on the stick is not valid JSON: " + e.message); }
     if (user) configs.push(user);
     window.SportsHubDirect.init({ configs: configs });
+    window.SportsHubDirect.setUserConfig(user || {});
     state.directReady = true;
   }
 
@@ -647,7 +648,7 @@
       try { apps = JSON.parse(window.SportsHub.apps()) || []; } catch (e) { apps = []; }
       state.config.apps = apps;
     }
-    if (!apps.length) { dock.classList.add("hidden"); return; }
+    apps = apps.concat([{ label: "Hub Settings", builtin: "settings", color: "#3a2c23" }]);
     dock.classList.remove("hidden");
     if (state.config && state.config.dockPosition === "top") $("#app").classList.add("dock-top");
     apps.forEach((a, i) => {
@@ -656,12 +657,12 @@
       t.dataset.focusable = "app";
       t.dataset.package = a.package || "";
       t.dataset.url = a.url || "";
-      const mono = el("span", "mono", initials(a.label));
+      const mono = el("span", "mono", a.builtin === "settings" ? "⚙" : initials(a.label));
       mono.style.background = a.color || hashColor(a.label);
       t.appendChild(mono);
       // artwork: explicit "icon" URL in config, else the kiosk's copy of the app's TV banner,
       // else static/icons/<package>.png if you put one there, else the initials above
-      const src = a.icon || bridgeIcon(a.package) || (a.package ? fileUrl("icons/" + a.package + ".png") : "");
+      const src = a.builtin ? "" : (a.icon || bridgeIcon(a.package) || (a.package ? fileUrl("icons/" + a.package + ".png") : ""));
       if (src) {
         const img = el("img", "art");
         img.alt = "";
@@ -697,6 +698,7 @@
   }
 
   function launchApp(a) {
+    if (a.builtin === "settings") { if (window.SportsHubSettings) window.SportsHubSettings.open(); return; }
     // 1. the kiosk app's JS bridge (sportshub/android), 2. an intent:// URL (Fully Kiosk, Chrome),
     // 3. a plain URL. Each falls through to the next if unavailable.
     if (window.SportsHub && typeof window.SportsHub.launch === "function" && a.package) {
@@ -934,7 +936,7 @@
       if (g && g.state === "in") enterGameMode(g);
       else if (g) openGame(g);
     } else if (e.dataset.focusable === "app") {
-      const apps = state.config.apps || [];
+      const apps = (state.config.apps || []).concat([{ label: "Hub Settings", builtin: "settings" }]);
       const a = apps[parseInt(e.id.replace("app-", ""), 10)];
       if (a) launchApp(a);
     }
@@ -945,6 +947,8 @@
     const idleMs = Date.now() - state.lastKeyAt;
     state.lastKeyAt = Date.now();
     const k = ev.key, code = ev.keyCode;
+    if (window.SportsHubSettings && window.SportsHubSettings.isOpen()) { window.SportsHubSettings.handleKey(ev); ev.preventDefault(); return; }
+    if (k === "ContextMenu" || code === 93 || k === "F1") { if (window.SportsHubSettings) window.SportsHubSettings.open(); ev.preventDefault(); return; }
     if (idleMs > 10000 && !state.overlayOpen && !state.gm.active && /^Arrow/.test(k) && recoverFocusAfterIdle()) { ev.preventDefault(); return; }
     const isBack = k === "Escape" || k === "Backspace" || k === "GoBack" || k === "BrowserBack" || code === 27 || code === 461 || code === 10009;
     if (!$("#callout").classList.contains("hidden") && $("#callout").classList.contains("has-video") && (isBack || k === "Enter" || code === 13)) {
@@ -995,7 +999,7 @@
 
   // Exposed for the Android kiosk wrapper: it calls these on hardware Back / Home / resume.
   window.SportsHubPage = {
-    back() { if (state.gm.active) { exitGameMode(); return true; } if (state.overlayOpen) { closeOverlay(); return true; } onKey({ key: "Escape", keyCode: 27, preventDefault() {} }); return true; },
+    back() { if (window.SportsHubSettings && window.SportsHubSettings.isOpen()) { window.SportsHubSettings.handleKey({ key: "Escape", keyCode: 27 }); return true; } if (state.gm.active) { exitGameMode(); return true; } if (state.overlayOpen) { closeOverlay(); return true; } onKey({ key: "Escape", keyCode: 27, preventDefault() {} }); return true; },
     home() { exitGameMode(); closeOverlay(); selectTab("all"); },
     gameMode(league, id) { const g = allGames().find((x) => x.league === league && x.id === id); if (g) enterGameMode(g); },
     // for testing callouts from the browser console: SportsHubPage.simulateScore("nfl", "401901001", "away", 7)
@@ -1014,6 +1018,11 @@
     setGameModeOption(key, value) { if (!state.config.gameMode) state.config.gameMode = {}; state.config.gameMode[key] = value; },
     setOption(key, value) { state.config[key] = value; },
     mode() { return isDirect() ? "direct" : "server"; },
+    config() { return state.config; },
+    myteams() { return (state.myteams && state.myteams.teams) || []; },
+    getJSON: getJSON,
+    toast: toast,
+    settings() { if (window.SportsHubSettings) window.SportsHubSettings.open(); },
     // direct mode: re-read config.json from the stick (after an adb push) without a reload
     reloadConfig() { state.directReady = false; return loadConfig().then(() => { loadToday(); loadMyTeams(); loadNews(); }); },
     // renders a built-in sound offline and resolves with its peak level (0..1); for diagnostics
@@ -1035,7 +1044,7 @@
   function idleTick() {
     const cfg = state.config || {};
     const rotate = cfg.idleRotateSeconds || 0;
-    if (!rotate || state.overlayOpen || state.gm.active) return;
+    if (!rotate || state.overlayOpen || state.gm.active || (window.SportsHubSettings && window.SportsHubSettings.isOpen())) return;
     const now = Date.now();
     if (now - state.lastKeyAt < (cfg.idleAfterSeconds || 30) * 1000) { lastIdleAction = now; return; }
     const grid = $("#games");
@@ -1794,7 +1803,7 @@
       }
       return;
     }
-    if (cfg.auto === false || state.overlayOpen) return;
+    if (cfg.auto === false || state.overlayOpen || (window.SportsHubSettings && window.SportsHubSettings.isOpen())) return;
     if (idleMs < (cfg.idleSeconds || 60) * 1000) return;
     const live = liveFavorites();
     if (live.length) enterGameMode(live[0]);

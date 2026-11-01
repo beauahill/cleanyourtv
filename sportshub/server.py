@@ -474,9 +474,10 @@ def sort_key(g):
 # ----------------------------------------------------------------------------------------------
 
 class Api:
-    def __init__(self, cfg, demo):
+    def __init__(self, cfg, demo, config_path=None):
         self.cfg = cfg
         self.demo = demo
+        self.config_path = config_path or os.path.join(HERE, "config.json")
         self.tz = _tz(cfg.get("timezone"))
 
     # -- upstream ------------------------------------------------------------------------------
@@ -630,6 +631,27 @@ class Api:
         return {"league": key, "id": game_id, "scoringPlays": plays, "leaders": leaders[:8], "box": box,
                 "lastPlay": last, "homeWinPct": win, "stale": stale}
 
+    def teams(self, key):
+        """Every team in a league (for the settings picker): id, abbr, name, short, logo, color."""
+        path, lg = league_path(self.cfg, key)
+        params = {"limit": 1000}
+        if (lg.get("params") or {}).get("groups"):
+            params["groups"] = lg["params"]["groups"]
+        if self.demo.enabled:
+            raw, stale = cached_json(f"demo:teams:{key}", 3600, lambda: self.demo.load(f"teams-{key}"))
+        else:
+            raw, stale = cached_json(f"teams:{key}", 6 * 3600, lambda: self._espn(f"{path}/teams", params))
+        out = []
+        for sp in raw.get("sports", []) or []:
+            for L in sp.get("leagues", []) or []:
+                for item in L.get("teams", []) or []:
+                    t = item.get("team") or item
+                    out.append({"id": t.get("id"), "abbr": t.get("abbreviation"), "name": t.get("displayName"),
+                                "short": t.get("shortDisplayName") or t.get("name"), "location": t.get("location"),
+                                "logo": ((t.get("logos") or [{}])[0]).get("href"), "color": t.get("color")})
+        out.sort(key=lambda t: (t.get("name") or ""))
+        return {"league": key, "label": lg["label"], "teams": out, "stale": stale}
+
     def fantasy(self):
         fcfg = self.cfg.get("fantasy") or {}
         if not fcfg.get("enabled"):
@@ -738,6 +760,10 @@ class Handler(SimpleHTTPRequestHandler):
                 body = api.news(q["league"]) if q.get("league") else api.allnews()
             elif name == "game":
                 body = api.game(q.get("league", "nfl"), q.get("id", ""))
+            elif name == "teams":
+                body = api.teams(q.get("league", "nfl"))
+            elif name == "config/local":
+                body = read_local_config(api)
             elif name == "fantasy":
                 body = api.fantasy()
             elif name == "health":
@@ -753,6 +779,35 @@ class Handler(SimpleHTTPRequestHandler):
             log.exception("api %s failed", name)
             return self._json({"error": repr(e)}, 502)
 
+    def do_POST(self):
+        parsed = urllib.parse.urlsplit(self.path)
+        if parsed.path != "/api/config/local":
+            return self._json({"error": "not found"}, 404)
+        try:
+            n = int(self.headers.get("Content-Length") or 0)
+            if n > 512 * 1024:
+                return self._json({"error": "too large"}, 413)
+            data = json.loads(self.rfile.read(n).decode("utf-8"))
+            if not isinstance(data, dict):
+                return self._json({"error": "config must be a JSON object"}, 400)
+            path = local_config_path(self.api)
+            tmp = path + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+                f.write("\n")
+            os.replace(tmp, path)
+            # re-read everything so the next /api/* reflects the new settings
+            new_cfg = load_config(self.api.config_path)
+            self.api.cfg = new_cfg
+            self.api.tz = _tz(new_cfg.get("timezone"))
+            log.info("config.local.json saved from the settings screen (%d keys)", len(data))
+            return self._json({"ok": True, "saved": path})
+        except json.JSONDecodeError as e:
+            return self._json({"error": f"invalid JSON: {e.msg}"}, 400)
+        except Exception as e:  # noqa: BLE001
+            log.exception("config save failed")
+            return self._json({"error": repr(e)}, 500)
+
     def _json(self, body, status=200):
         data = json.dumps(body, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -762,6 +817,21 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(data)
+
+
+def local_config_path(api):
+    return os.path.join(os.path.dirname(os.path.abspath(api.config_path)), "config.local.json")
+
+
+def read_local_config(api):
+    path = local_config_path(api)
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding="utf-8") as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return {}
 
 
 def _safe_date(s):
@@ -790,7 +860,7 @@ def main(argv=None):
     mimetypes.add_type("video/webm", ".webm")
     mimetypes.add_type("audio/mpeg", ".mp3")
     cfg = load_config(args.config)
-    Handler.api = Api(cfg, Demo(args.demo))
+    Handler.api = Api(cfg, Demo(args.demo), args.config)
     srv = ThreadingHTTPServer((args.host, args.port), Handler)
     srv.daemon_threads = True
     log.info("Sports Hub on http://%s:%d/  (%s, %d leagues, %d favourites)%s", args.host, args.port,

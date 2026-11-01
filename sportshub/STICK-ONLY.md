@@ -23,6 +23,9 @@ no favourites yet, ESPN fetched from the stick. Press Home: that is the hub.
 
 ## Your settings
 
+The easiest way: the **Hub Settings** tile at the end of the dock. Teams, leagues, theme, delay,
+sounds and the dock, all with the remote; Back saves. It writes the same file described next.
+
 Settings are a `config.json` in the app's files folder on the stick. Same keys and layering as the
 PC version's `config.local.json`: only what you want to change, lists replace, objects merge.
 
