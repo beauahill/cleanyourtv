@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "sportshub/android/**"
+      - "sportshub/static/**"        # bundled into the APK
       - ".github/workflows/kiosk-apk.yml"
   workflow_dispatch:
 
