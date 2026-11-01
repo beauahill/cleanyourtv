@@ -197,27 +197,26 @@
   function field(s, out, home, away) {
     const side = out.possession;
     if (!side) return;
-    const offense = (side === "home" ? home : away).abbr;
-    let ytg = yardsToGo(s.possessionText, offense);
-    if (ytg == null && Number.isInteger(s.yardLine)) ytg = 100 - s.yardLine;
+    const offense = side === "home" ? home : away;
+    const ytg = yardsToGo(s.possessionText, offense.abbr);
+    if (ytg == null) return;
     out.yardsToGo = ytg;
     if (Number.isInteger(s.down) && s.down > 0) out.down = s.down;
     if (Number.isInteger(s.distance)) {
       out.distance = s.distance;
-      if (ytg != null) out.firstDownAt = s.distance < ytg ? Math.max(0, ytg - s.distance) : 0;
+      out.firstDownAt = s.distance < ytg ? Math.max(0, ytg - s.distance) : 0;
     }
     const lp = s.lastPlay;
     if (lp && Object.keys(lp).length) {
       const drive = lp.drive || {};
-      const dstart = yardsToGo((drive.start || {}).text, offense);
+      const dstart = yardsToGo((drive.start || {}).text, offense.abbr);
       if (dstart != null) out.drive = { startYtg: dstart, text: drive.description == null ? null : drive.description };
       const ptype = (lp.type || {}).text || "";
       const kind = playKind(ptype);
-      const play = { id: lp.id == null ? null : lp.id, kind: kind, type: ptype, text: lp.text == null ? null : lp.text, yards: lp.statYardage == null ? null : lp.statYardage };
-      const st = lp.start || {}, en = lp.end || {};
-      if (Number.isInteger(st.yardLine)) play.startYtg = 100 - st.yardLine;
-      if (Number.isInteger(en.yardLine)) play.endYtg = 100 - en.yardLine;
-      if (play.startYtg == null && ytg != null && Number.isInteger(play.yards) && ["pass", "rush", "sack"].includes(kind)) { play.startYtg = ytg + play.yards; play.endYtg = ytg; }
+      const playTeam = String((lp.team || {}).id || "");
+      const same = playTeam === "" || playTeam === String(offense.id || "");
+      const play = { id: lp.id == null ? null : lp.id, kind: kind, type: ptype, text: lp.text == null ? null : lp.text, yards: lp.statYardage == null ? null : lp.statYardage, sameTeam: same };
+      if (same && Number.isInteger(play.yards) && ["pass", "rush", "sack"].includes(kind)) { play.startYtg = Math.max(0, Math.min(100, ytg + play.yards)); play.endYtg = ytg; }
       out.play = play;
     }
   }
