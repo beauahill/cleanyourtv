@@ -18,13 +18,16 @@ Everything is in `rem` with `1rem = 1/120 of the screen width`, so it looks the 
 The screenshots are from demo mode in a sandbox without internet, so they show team abbreviations
 where the real page shows ESPN's team logos.
 
+**No PC?** The kiosk APK can run the whole thing by itself, talking to ESPN from the stick: see
+[`STICK-ONLY.md`](STICK-ONLY.md). The rest of this README is the PC-hosted mode.
+
 ## Parts
 
 | Path | What it is |
 |---|---|
 | `server.py` | Stdlib-only Python server: serves the page, proxies and caches ESPN, normalises the data. |
 | `config.json` | Leagues, favourite teams, dock apps, refresh rates, timezone, fantasy hook. |
-| `static/` | The page: `index.html`, `style.css`, `app.js`, the Outfit font. No build step. |
+| `static/` | The page: `index.html`, `style.css`, `app.js`, the Outfit font. No build step. `direct.js` is the data layer for stick-only mode. |
 | `android/` | A 100 KB kiosk app (WebView) that makes the page the stick's home screen. |
 | `demo/` | ESPN-shaped fixtures so you can develop without hitting ESPN (`--demo`). |
 | `sportshub.service` | systemd unit for the mini PC. |
@@ -207,6 +210,16 @@ abbreviation or id), or in the browser console `SportsHubPage.demo(null, "buf")`
 `adb shell am start -n com.sportshub.tv/.MainActivity --es url "http://<pc-ip>:8777/?demo=score"`,
 then set the URL back without the query.
 
+## Settings on the TV
+
+The last dock tile, **Hub Settings** (or the Menu key on remotes that have one), opens a settings
+screen driven entirely by the remote: favourites (add from a league's team list, reorder, pick a
+sound or clip file, remove), leagues (turn on and order the tabs), display (title via an on-screen
+keyboard, theme, time zone, broadcast delay, screen margin, dock position), sounds and callouts,
+dock apps, and an About page with ESPN status and a reset. Back from the left-hand menu saves and
+applies. It edits the same `config.local.json` (PC) or `config.json` (stick) described below, only
+the keys you change, so a text editor still works for anything the screen doesn't cover.
+
 ## Configuration
 
 `config.json` holds the defaults that ship with the repo. Put **your** settings in
@@ -233,7 +246,7 @@ The full set of keys, with their defaults:
 ```jsonc
 {
   "title": "Man Cave",
-  "timezone": "America/Denver",           // all times on the page are shown in this zone
+  "timezone": "",                         // "" = the device's zone; or e.g. "America/Denver"
   "leagues": [                            // order = tab order
     {"key": "nfl", "label": "NFL", "sport": "football", "league": "nfl"},
     {"key": "cfb", "label": "CFB", "sport": "football", "league": "college-football",
@@ -259,7 +272,7 @@ The full set of keys, with their defaults:
   passed straight through (`groups` for conferences, `limit`). Set `"news": false` on a league to
   keep it out of the headlines.
 - **Favourites.** `team` is the abbreviation ESPN uses in its URLs (`den`, `kc`, `wyo`, `col`).
-  For college teams the numeric id also works. The defaults are a Wyoming/Colorado guess, change them.
+  For college teams the numeric id also works. The shipped default has none.
 - **Apps.** `package` names: `adb shell pm list packages` on the stick (or `tools/tv.py 'pm list
   packages'`), e.g. `adb shell pm list packages | grep -i mountain` to find one app. Leave `apps`
   empty when using the kiosk app and the dock fills itself with every installed TV app,

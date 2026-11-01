@@ -53,7 +53,7 @@ log = logging.getLogger("sportshub")
 
 DEFAULT_CONFIG = {
     "title": "Sports Hub",
-    "timezone": "America/Denver",
+    "timezone": "",            # "" = the machine's own time zone
     "leagues": [
         {"key": "nfl", "label": "NFL", "sport": "football", "league": "nfl"},
         {"key": "cfb", "label": "CFB", "sport": "football", "league": "college-football", "params": {"groups": "80"}},
