@@ -451,7 +451,6 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 }
 @keyframes fw-core { from { transform: scale(0.2); opacity: 1; } to { transform: scale(3); opacity: 0; } }
 
-<<<<<<< HEAD
 /* ---------- settings screen ---------- */
 .settings { position: fixed; inset: 0; z-index: 30; background: rgba(4, 6, 10, 0.975); padding: var(--safe); }
 .st-panel { display: grid; grid-template-columns: 26rem 1fr; gap: 2rem; height: 100%; }
@@ -488,7 +487,6 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .st-key { text-align: center; padding: 0.8rem 0; border-radius: 0.6rem; background: var(--panel-2); font-size: 1.7rem; font-weight: 600; border: 0.12rem solid transparent; }
 .st-key.space { grid-column: span 3; }
 .st-key.focused { box-shadow: var(--focus-glow); }
-=======
 /* ---------- football field graphic ---------- */
 .field { width: 100%; display: block; }
 .field .turf { fill: #1d3a22; }
@@ -540,4 +538,3 @@ body { font-family: "Outfit", "Segoe UI", Roboto, system-ui, sans-serif; font-we
 .field.anim-done .play-arc, .field.anim-done .play-run { stroke-dashoffset: 0; animation: none; }
 .field.anim-done .flag { opacity: 1; animation: none; }
 .field.anim-done .incomplete-x { opacity: 1; animation: none; }
->>>>>>> claude/admiring-albattani-aplkym
